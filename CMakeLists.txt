@@ -7,13 +7,6 @@ set (VERSION_MINOR 0)
 set (VERSION_REV 0)
 set (VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}")
 
-project(logger_bench VERSION ${VERSION_FULL})
-
-set (CMAKE_CXX_STANDARD 11)
-
-set(SOURCES ${CMAKE_SOURCE_DIR}/src)
-set(LOGGER_INSTALL ${CMAKE_BINARY_DIR}/install)
-
 option(MALC "mini async log C enabled" on)
 option(MAL "mini async log enabled" off)
 option(NANOLOG "NanoLog enabled" off)
@@ -21,7 +14,13 @@ option(SPDLOG "spdlog enabled" off)
 option(GLOG "Google log enabled" off)
 option(G3LOG "G3 log enabled" off)
 
+project(logger_bench VERSION ${VERSION_FULL})
+set (CMAKE_CXX_STANDARD 11)
+
 #-- Own Binary -----------------------------------------------------------------
+
+set(SOURCES ${CMAKE_SOURCE_DIR}/src)
+set(LOGGER_INSTALL ${CMAKE_BINARY_DIR}/install)
 
 add_executable(
     logger-bench
