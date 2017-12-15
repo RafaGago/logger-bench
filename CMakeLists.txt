@@ -9,6 +9,8 @@ set (VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}")
 
 project(logger_bench VERSION ${VERSION_FULL})
 
+set (CMAKE_CXX_STANDARD 11)
+
 set(SOURCES ${CMAKE_SOURCE_DIR}/src)
 set(LOGGER_INSTALL ${CMAKE_BINARY_DIR}/install)
 
@@ -40,9 +42,7 @@ execute_process(
     )
 string (STRIP ${ARCH_TRIPLET} ARCH_TRIPLET)
 
-set (CMAKE_CXX_STANDARD 11)
-
-#-- MALC -----------------------------------------------------------------------
+#-- malc -----------------------------------------------------------------------
 
 if (MALC)
     #PATCH_COMMAND shouldn't be necessary if CMake cloned with --recursive
@@ -77,15 +77,15 @@ if (MALC)
         TARGET                     bl_nonblock
         PROPERTY IMPORTED_LOCATION ${LOGGER_INSTALL}/lib/${ARCH_TRIPLET}/libbl-nonblock.a
         )
-    add_dependencies (bl_nonblock malc_artifacts bl_nonblock bl_base)
+    add_dependencies (bl_nonblock malc_artifacts)
 
-    target_link_libraries (logger-bench malc)
+    target_link_libraries (logger-bench malc bl_nonblock bl_base)
     target_compile_definitions (logger-bench PRIVATE HAS_MALC=1)
     target_sources (logger-bench PRIVATE ${SOURCES}/malc.cpp)
 
 endif (MALC)
 
-#-- MAL ------------------------------------------------------------------------
+#-- mal ------------------------------------------------------------------------
 
 if (MAL)
     ExternalProject_Add(
@@ -109,7 +109,7 @@ if (MAL)
 
 endif (MAL)
 
-#-- Nanolog --------------------------------------------------------------------
+#-- nanolog --------------------------------------------------------------------
 
 if (NANOLOG)
     set (NANOLOG_REPO ${CMAKE_BINARY_DIR}/nanolog-git)
@@ -205,3 +205,8 @@ if (G3LOG)
     target_sources (logger-bench PRIVATE ${SOURCES}/g3log.cpp)
 
 endif (G3LOG)
+
+#-- System libraries -----------------------------------------------------------
+
+find_package (Threads)
+target_link_libraries (logger-bench  ${CMAKE_THREAD_LIBS_INIT})
