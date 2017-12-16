@@ -81,7 +81,9 @@ static bool run_throughput(
               set_thread_cpu (i);
               l.prepare_thread (mem_bytes / thread_count);
               initialized.fetch_add (1, memory_order_relaxed);
-              while (initialized.load (memory_order_relaxed) >= 0);
+              while (initialized.load (memory_order_relaxed) >= 0) {
+                  this_thread::yield();
+              }
               auto start  = std::chrono::system_clock::now();
               int successes = l.enqueue_msgs (msgs_thr);
               auto end = std::chrono::system_clock::now();
@@ -91,7 +93,9 @@ static bool run_throughput(
               thread_results.end    = end;
           });
       }
-      while (initialized.load (memory_order_relaxed) != thread_count); /* spin */
+      while (initialized.load (memory_order_relaxed) != thread_count) {
+          this_thread::yield();
+      }
       initialized.store (-1, memory_order_relaxed);
       for (unsigned i = 0; i < thread_count; ++i) {
           threads[i].join();
@@ -164,11 +168,15 @@ static bool run_latency(
               set_thread_cpu (i);
               l.prepare_thread (mem_bytes / thread_count);
               initialized.fetch_add (1, memory_order_relaxed);
-              while (initialized.load (memory_order_relaxed) >= 0);
+              while (initialized.load (memory_order_relaxed) >= 0) {
+                  this_thread::yield();
+              }
               l.fill_latencies (lm, msgs_thr);
           });
       }
-      while (initialized.load (memory_order_relaxed) != thread_count); /* spin */
+      while (initialized.load (memory_order_relaxed) != thread_count) {
+          this_thread::yield();
+      }
       initialized.store (-1, memory_order_relaxed);
       for (unsigned i = 0; i < thread_count; ++i) {
           threads[i].join();
