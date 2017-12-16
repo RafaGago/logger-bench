@@ -225,7 +225,7 @@ static int run_tests(
       for (int l = 0; l < loggers.size(); ++l) {
           for (int t = 0; t < thread_count_idxs; ++t) {
               int threads = thread_count[t];
-              cout << loggers[l]->get_name() << " threads: " << threads;
+              cout << loggers[l]->get_name() << " threads: " << threads << ", ";
               test_result* tr = res.at (l, t, it);
               assert (tr);
               memset (tr, 0, sizeof *tr);
@@ -245,7 +245,7 @@ static int run_tests(
               rate *= 1000000;
               float trate = (double) msgs / (double) tr->total_ns;
               trate *= 1000000;
-              cout << ", Kmsgs/s: " << rate;
+              cout << "Kmsgs/s: " << rate;
               cout << ", faults: "  << tr->throughput_faults;
               cout << ", l97(ns):"  << tr->latency_ns_97;
               cout << ", l99(ns):"  << tr->latency_ns_99;

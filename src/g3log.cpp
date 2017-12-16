@@ -14,6 +14,7 @@ bool g3log::create (int fixed_queues_bytes)
     m_worker = g3::LogWorker::createLogWorker();
     m_sink   = m_worker->addDefaultLogger ("g3", "./");
     g3::initializeLogging (m_worker.get());
+    return true;
 }
 /*----------------------------------------------------------------------------*/
 bool g3log::terminate()
