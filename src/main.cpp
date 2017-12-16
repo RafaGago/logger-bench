@@ -46,6 +46,10 @@ static logvector init_logvector()
 #ifdef HAS_NANOLOG
     ret.push_back (std::unique_ptr<logger> (new nanolog_bench()));
 #endif
+#ifdef HAS_SPDLOG
+    ret.push_back (std::unique_ptr<logger> (new spdlog_async()));
+    ret.push_back (std::unique_ptr<logger> (new spdlog_sync()));
+#endif
     return std::move (ret);
 }
 /*----------------------------------------------------------------------------*/
