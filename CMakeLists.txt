@@ -11,7 +11,7 @@ option(MALC "mini async log C enabled" on)
 option(MAL "mini async log enabled" off)
 option(NANOLOG "NanoLog enabled" off)
 option(SPDLOG "spdlog enabled" off)
-option(LLCPP "Google log enabled" on)
+option(LLCPP "LLCO enabled" off)
 option(GLOG "Google log enabled" off)
 option(G3LOG "G3 log enabled" off)
 
