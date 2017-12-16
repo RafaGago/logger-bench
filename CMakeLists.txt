@@ -41,6 +41,12 @@ execute_process(
     )
 string (STRIP ${ARCH_TRIPLET} ARCH_TRIPLET)
 
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+    set (MESON_BUILDTYPE debug)
+else()
+    set (MESON_BUILDTYPE release)
+endif()
+
 #-- malc -----------------------------------------------------------------------
 
 if (MALC)
@@ -51,7 +57,7 @@ if (MALC)
         GIT_TAG           ba721eb9915577a361205cc3bfbea5c04ec55247
         PATCH_COMMAND     git submodule update --init --recursive
         CONFIGURE_COMMAND
-            meson malc_build --prefix=/ --buildtype=release -Dno_compressed_builtins=true -Dno_compressed_ptrs=true
+            meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dno_compressed_builtins=true -Dno_compressed_ptrs=true
         UPDATE_COMMAND    ""
         BUILD_IN_SOURCE   1
         BUILD_COMMAND     ninja -C malc_build

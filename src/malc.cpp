@@ -101,8 +101,18 @@ void malc_base::fill_latencies(latency_measurements& lm, int count)
     for (int i = 0; i < count; ++i) {
         uint64_t start = ns_now();
         log_error (err, LOG_STRING " {}", i);
-        lm.add_sample (start - ns_now(), err == bl_ok);
+        lm.add_sample (ns_now() - start, err == bl_ok);
     }
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_tls::get_name() const
+{
+    return "malc-tls";
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_tls::get_description() const
+{
+    return "mal C using thread local storage only";
 }
 /*----------------------------------------------------------------------------*/
 bool malc_tls::prepare_thread(int fixed_queues_bytes)
@@ -115,8 +125,28 @@ void malc_tls::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
     cfg.alloc.msg_allocator = nullptr;
 }
 /*----------------------------------------------------------------------------*/
+char const* malc_heap::get_name() const
+{
+    return "malc-heap";
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_heap::get_description() const
+{
+    return "mal C using the default heap only";
+}
+/*----------------------------------------------------------------------------*/
 void malc_heap::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
 {}
+/*----------------------------------------------------------------------------*/
+char const* malc_fixed::get_name() const
+{
+    return "malc-fixed";
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_fixed::get_description() const
+{
+    return "mal C using the fixed size memory pool";
+}
 /*----------------------------------------------------------------------------*/
 void malc_fixed::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
 {
@@ -124,6 +154,16 @@ void malc_fixed::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
     cfg.alloc.fixed_allocator_bytes     = fixed_queues_bytes;
     cfg.alloc.fixed_allocator_max_slots = 2;
     cfg.alloc.fixed_allocator_per_cpu   = 0;
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_fixed_cpu::get_name() const
+{
+    return "malc-fixed-cpu";
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_fixed_cpu::get_description() const
+{
+    return "mal C using one fixed size memory pool for each CPU";
 }
 /*----------------------------------------------------------------------------*/
 void malc_fixed_cpu::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)

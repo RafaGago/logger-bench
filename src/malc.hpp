@@ -6,6 +6,7 @@ struct malc_cfg;
 
 #include <logger.hpp>
 #include <bl/base/allocator.h>
+#include <timestamp_ns.hpp>
 
 /*----------------------------------------------------------------------------*/
 class malc_base : public logger {
@@ -34,22 +35,33 @@ protected:
 /*----------------------------------------------------------------------------*/
 class malc_tls : public malc_base {
 public:
+    virtual char const* get_name() const;
+    virtual char const* get_description() const;
     virtual bool prepare_thread(int fixed_queues_bytes);
 protected:
     void set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes);
 };
 /*----------------------------------------------------------------------------*/
 class malc_heap : public malc_base {
+public:
+    virtual char const* get_name() const;
+    virtual char const* get_description() const;
 protected:
     void set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes);
 };
 /*----------------------------------------------------------------------------*/
 class malc_fixed : public malc_base {
+public:
+    virtual char const* get_name() const;
+    virtual char const* get_description() const;
 protected:
     void set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes);
 };
 /*----------------------------------------------------------------------------*/
 class malc_fixed_cpu : public malc_base {
+public:
+    virtual char const* get_name() const;
+    virtual char const* get_description() const;
 protected:
     void set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes);
 };

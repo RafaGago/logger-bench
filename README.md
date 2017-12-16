@@ -7,7 +7,7 @@ mini-async-log repository with many git submodules.
 This will use Cmake external projects instead.
 
 The main motivator for change was to measure latency as a percentile. C++
-Templates will be avoided as much as possible too.
+Templates will be avoided as much as possible too (just for code readability).
 
 This now only compiles on Linux.
 
