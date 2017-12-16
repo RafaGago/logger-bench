@@ -147,7 +147,7 @@ static int parse_args(
 /*----------------------------------------------------------------------------*/
 int main (int argc, char const* argv[])
 {
-    static const int mem = 16 * 1024 * 1024;
+    static const int mem = 32 * 1024 * 1024;
     int msgs       = 0;
     int iterations = 0;
     logvector loggers = init_logvector();
