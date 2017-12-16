@@ -6,6 +6,7 @@
 
 #include <malc.hpp>
 #include <latency_measurements.hpp>
+#include <timestamp_ns.hpp>
 
 /*----------------------------------------------------------------------------*/
 malc_base::malc_base()

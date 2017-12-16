@@ -8,7 +8,7 @@ set (VERSION_REV 0)
 set (VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}")
 
 option(MALC "mini async log C enabled" on)
-option(MAL "mini async log enabled" off)
+option(MAL "mini async log enabled" on)
 option(NANOLOG "NanoLog enabled" off)
 option(SPDLOG "spdlog enabled" off)
 option(GLOG "Google log enabled" off)
@@ -96,7 +96,7 @@ if (MAL)
     ExternalProject_Add(
         mal_artifacts
         GIT_REPOSITORY https://github.com/RafaGago/mini-async-log.git
-        GIT_TAG        d239c085e8af03180fbd1bf61181a3c7c96f8a51
+        GIT_TAG        82dccd192b0783dceec0898d178e38f7db5a1e69
         UPDATE_COMMAND ""
         INSTALL_DIR    ${LOGGER_INSTALL}
         CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBUILD_SHARED_LIBS=off

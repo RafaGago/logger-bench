@@ -39,17 +39,22 @@ static logvector init_logvector()
     ret.push_back (std::unique_ptr<logger> (new malc_fixed()));
     ret.push_back (std::unique_ptr<logger> (new malc_fixed_cpu()));
 #endif
+#ifdef HAS_MAL
+    ret.push_back (std::unique_ptr<logger> (new mal_heap()));
+    ret.push_back (std::unique_ptr<logger> (new mal_fixed()));
+#endif
     return std::move (ret);
 }
 /*----------------------------------------------------------------------------*/
 static void print_usage (logvector const& loggers)
 {
     using namespace std;
-    cout << "usage: logger-bench <msgs> <iterations> <type 1> .. [<type N>]\n";
-    cout << "where type is the logger type, which can be:\n";
-    cout << "    all: All the available loggers.\n";
+    cout << "usage: logger-bench <iterations> <messages> <type 1> .. [<type N>]\n";
+    cout << "  Where type is the logger type. Available options:\n";
+    cout << "    [all]: All the available loggers.\n";
     for (auto const& l: loggers) {
-        cout << "    " << l->get_name() << ": " << l->get_description() << "\n";
+        cout << "    [" << l->get_name() << "]: " ;
+        cout << l->get_description() << "\n";
     }
 }
 //------------------------------------------------------------------------------
@@ -71,7 +76,7 @@ static int parse_args(
 {
     using namespace std;
     if (argc < 2) {
-        cerr << "no message count specified\n";
+        cerr << "no message count specified\n\n";
         print_usage (loggers);
         return 1;
     }
@@ -79,34 +84,34 @@ static int parse_args(
         return -1;
     }
     char* end;
-    msgs = strtol (argv[1], &end, 10);
+    iterations = strtol (argv[1], &end, 10);
     if (argv[1] == end) {
-        cerr << "invalid message count: " << argv[1] << "\n" ;
+        cerr << "invalid itereration count: " << argv[1] << "\n\n" ;
         return 1;
     }
-    if (msgs <= 0) {
-        cerr << "the message count must be bigger than 0\n" ;
+    if (iterations <= 0) {
+        cerr << "the number of iterations must be bigger than 0\n\n" ;
         return 1;
     }
     if (argc < 3) {
-        cerr << "no iteration count specified\n";
+        cerr << "no iteration count specified\n\n";
         print_usage (loggers);
         return 1;
     }
     if (try_handle_help (argv[2], loggers)) {
         return -1;
     }
-    iterations = strtol (argv[2], &end, 10);
+    msgs = strtol (argv[2], &end, 10);
     if (argv[1] == end) {
-        cerr << "invalid message count: " << argv[2] << "\n" ;
+        cerr << "invalid message count: " << argv[2] << "\n\n" ;
         return 1;
     }
-    if (iterations <= 0) {
-        cerr << "the number of iterations must be bigger than 0\n" ;
+    if (msgs <= 0) {
+        cerr << "the message count must be bigger than 0\n\n" ;
         return 1;
     }
     if (argc < 4) {
-        cerr << "no logger type specified\n";
+        cerr << "no logger type specified\n\n";
         print_usage (loggers);
         return 1;
     }
@@ -120,7 +125,7 @@ static int parse_args(
             }
             int i = 0;
             if (type.compare ("all") == 0) {
-                cerr << "\"all\" logger must be the only type specified\n" ;
+                cerr << "\"all\" logger must be the only type specified\n\n" ;
                 return 1;
             }
             for (; i < loggers.size(); ++i) {
@@ -130,7 +135,7 @@ static int parse_args(
                 }
             }
             if (i == loggers.size()) {
-                cerr << "invalid logger type: " << type << "\n" ;
+                cerr << "invalid logger type: " << type << "\n\n" ;
                 return 1;
             }
         }

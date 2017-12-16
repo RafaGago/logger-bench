@@ -6,7 +6,6 @@ struct malc_cfg;
 
 #include <logger.hpp>
 #include <bl/base/allocator.h>
-#include <timestamp_ns.hpp>
 
 /*----------------------------------------------------------------------------*/
 class malc_base : public logger {
