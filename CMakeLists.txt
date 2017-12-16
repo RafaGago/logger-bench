@@ -8,8 +8,8 @@ set (VERSION_REV 0)
 set (VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}")
 
 option(MALC "mini async log C enabled" on)
-option(MAL "mini async log enabled" on)
-option(NANOLOG "NanoLog enabled" off)
+option(MAL "mini async log enabled" off)
+option(NANOLOG "NanoLog enabled" on)
 option(SPDLOG "spdlog enabled" off)
 option(GLOG "Google log enabled" off)
 option(G3LOG "G3 log enabled" off)
@@ -129,15 +129,10 @@ if (NANOLOG)
         BUILD_COMMAND     ""
         INSTALL_COMMAND   ""
         )
-    set_property (SOURCE ${NANOLOG_REPO}/NanoLog.cpp APPEND PROPERTY GENERATED 1)
-    add_library (nanolog STATIC ${NANOLOG_REPO}/NanoLog.cpp)
-    target_include_directories (nanolog PRIVATE ${NANOLOG_REPO})
-    add_dependencies (nanolog nanolog_clone)
-
-    target_link_libraries (logger-bench nanolog)
+    add_dependencies (logger-bench nanolog_clone)
     target_compile_definitions (logger-bench PRIVATE HAS_NANOLOG=1)
     target_include_directories (logger-bench PRIVATE ${NANOLOG_REPO})
-    target_sources (logger-bench PRIVATE ${SOURCES}/nanolog.cpp)
+    target_sources (logger-bench PRIVATE ${SOURCES}/nanolog_bench.cpp)
 
 endif (NANOLOG)
 

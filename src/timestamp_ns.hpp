@@ -1,6 +1,8 @@
 #ifndef __TIMESTAMP_NS__
 #define __TIMESTAMP_NS__
 
+#include <chrono>
+
 /*----------------------------------------------------------------------------*/
 static inline uint64_t ns_now()
 {

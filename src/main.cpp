@@ -13,7 +13,7 @@
 #endif
 
 #ifdef HAS_NANOLOG
-#include <nanolog.hpp>
+#include <nanolog_bench.hpp>
 #endif
 
 #ifdef HAS_SPDLOG
@@ -42,6 +42,9 @@ static logvector init_logvector()
 #ifdef HAS_MAL
     ret.push_back (std::unique_ptr<logger> (new mal_heap()));
     ret.push_back (std::unique_ptr<logger> (new mal_fixed()));
+#endif
+#ifdef HAS_NANOLOG
+    ret.push_back (std::unique_ptr<logger> (new nanolog_bench()));
 #endif
     return std::move (ret);
 }
