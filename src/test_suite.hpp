@@ -91,7 +91,6 @@ static bool run_throughput(
               thread_results.end    = end;
           });
       }
-      set_thread_cpu (thread_count);
       while (initialized.load (memory_order_relaxed) != thread_count); /* spin */
       initialized.store (-1, memory_order_relaxed);
       for (unsigned i = 0; i < thread_count; ++i) {
@@ -112,26 +111,24 @@ static bool run_throughput(
     l.destroy();
 
     std::chrono::system_clock::time_point min_start = results[0].start;
+    std::chrono::system_clock::time_point max_end   = results[0].end;
     tr.throughput_faults = 0;
     for (unsigned i = 0; i < thread_count; ++i) {
         tr.throughput_faults += results[i].faults;
-        min_start      = std::min (min_start, results[i].start);
-        uint64_t start = duration_cast<nanoseconds>(
-            results[i].start.time_since_epoch()
-            ).count();
-        uint64_t end = duration_cast<nanoseconds>(
-            results[i].end.time_since_epoch()
-            ).count();
-        tr.producer_ns += end - start;
+        min_start = std::min (min_start, results[i].start);
+        max_end   = std::max (max_end, results[i].end);
     }
     uint64_t start_ns = duration_cast<nanoseconds>(
         min_start.time_since_epoch()
         ).count();
+    uint64_t prod_end_ns = duration_cast<nanoseconds>(
+        max_end.time_since_epoch()
+        ).count();
     uint64_t total_end_ns = duration_cast<nanoseconds>(
         total_end.time_since_epoch()
         ).count();
-    tr.producer_ns /= thread_count;
-    tr.total_ns     = total_end_ns - start_ns;
+    tr.producer_ns = prod_end_ns - start_ns;
+    tr.total_ns    = total_end_ns - start_ns;
     return true;
 }
 /*----------------------------------------------------------------------------*/
@@ -171,8 +168,7 @@ static bool run_latency(
               l.fill_latencies (lm, msgs_thr);
           });
       }
-      set_thread_cpu (thread_count);
-      while (initialized.load (memory_order_relaxed) != thread_count);
+      while (initialized.load (memory_order_relaxed) != thread_count); /* spin */
       initialized.store (-1, memory_order_relaxed);
       for (unsigned i = 0; i < thread_count; ++i) {
           threads[i].join();
@@ -237,17 +233,15 @@ static int run_tests(
               if (!success) {
                 return 1;
               }
-              float rate = (double) (msgs - tr->throughput_faults);
-              rate /= (double) tr->producer_ns;
+              float rate = (double) msgs / (double) tr->producer_ns;
               rate *= 1000000;
-              float trate = (double) (msgs - tr->throughput_faults);
-              trate /= (double) tr->total_ns;
+              float trate = (double) msgs / (double) tr->total_ns;
               trate *= 1000000;
               cout << ", Kmsgs/s: " << rate;
               cout << ", faults: "  << tr->throughput_faults;
               cout << ", l97(ns):"  << tr->latency_ns_97;
               cout << ", l99(ns):"  << tr->latency_ns_99;
-              cout << ", lmax(us):" << tr->latency_ns_max / 1000;
+              cout << ", lmax(ns):" << tr->latency_ns_max;
               cout << "\n";
           }
       }
