@@ -10,7 +10,8 @@ set (VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}")
 option(MALC "mini async log C enabled" on)
 option(MAL "mini async log enabled" off)
 option(NANOLOG "NanoLog enabled" off)
-option(SPDLOG "spdlog enabled" on)
+option(SPDLOG "spdlog enabled" off)
+option(LLCPP "Google log enabled" on)
 option(GLOG "Google log enabled" off)
 option(G3LOG "G3 log enabled" off)
 
@@ -87,7 +88,6 @@ if (MALC)
     target_link_libraries (logger-bench malc bl_nonblock bl_base)
     target_compile_definitions (logger-bench PRIVATE HAS_MALC=1)
     target_sources (logger-bench PRIVATE ${SOURCES}/malc.cpp)
-
 endif (MALC)
 
 #-- mal ------------------------------------------------------------------------
@@ -111,7 +111,6 @@ if (MAL)
     target_link_libraries (logger-bench mal)
     target_compile_definitions (logger-bench PRIVATE HAS_MAL=1)
     target_sources (logger-bench PRIVATE ${SOURCES}/mal.cpp)
-
 endif (MAL)
 
 #-- nanolog --------------------------------------------------------------------
@@ -133,7 +132,6 @@ if (NANOLOG)
     target_compile_definitions (logger-bench PRIVATE HAS_NANOLOG=1)
     target_include_directories (logger-bench PRIVATE ${NANOLOG_REPO})
     target_sources (logger-bench PRIVATE ${SOURCES}/nanolog_bench.cpp)
-
 endif (NANOLOG)
 
 #-- spdlog ---------------------------------------------------------------------
@@ -155,7 +153,6 @@ if (SPDLOG)
     target_compile_definitions (logger-bench PRIVATE HAS_SPDLOG=1)
     target_include_directories (logger-bench PRIVATE ${SPDLOG_REPO}/include)
     target_sources (logger-bench PRIVATE ${SOURCES}/spdlog.cpp)
-
 endif (SPDLOG)
 
 #-- glog -----------------------------------------------------------------------
@@ -179,7 +176,6 @@ if (GLOG)
     target_link_libraries (logger-bench glog)
     target_compile_definitions (logger-bench PRIVATE HAS_GLOG=1)
     target_sources (logger-bench PRIVATE ${SOURCES}/glog.cpp)
-
 endif (GLOG)
 
 #-- g3log ----------------------------------------------------------------------
@@ -203,8 +199,32 @@ if (G3LOG)
     target_link_libraries (logger-bench g3log)
     target_compile_definitions (logger-bench PRIVATE HAS_G3LOG=1)
     target_sources (logger-bench PRIVATE ${SOURCES}/g3log.cpp)
-
 endif (G3LOG)
+
+#-- llcpp ----------------------------------------------------------------------
+
+if (LLCPP)
+    set (LLCPP_REPO ${CMAKE_BINARY_DIR}/llcpp-git)
+
+    ExternalProject_Add(
+        llcpp_clone
+        GIT_REPOSITORY    https://github.com/blapid/llcpp.git
+        GIT_TAG           b6b079bb1f646188964d96fa81e5a9bf472f8137
+        SOURCE_DIR        ${LLCPP_REPO}
+        UPDATE_COMMAND    ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND     ""
+        INSTALL_COMMAND   ""
+        )
+    add_dependencies (logger-bench llcpp_clone)
+    target_compile_definitions (logger-bench PRIVATE HAS_LLCPP=1)
+    target_include_directories (logger-bench PRIVATE ${LLCPP_REPO}/include)
+    target_sources (logger-bench PRIVATE ${SOURCES}/llcpp.cpp)
+    set_property(
+        SOURCE ${SOURCES}/llcpp.cpp APPEND
+        PROPERTY COMPILE_FLAGS -std=gnu++17
+        )
+endif (LLCPP)
 
 #-- System libraries -----------------------------------------------------------
 
