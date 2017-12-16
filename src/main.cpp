@@ -53,6 +53,9 @@ static logvector init_logvector()
 #ifdef HAS_GLOG
     ret.push_back (std::unique_ptr<logger> (new glog()));
 #endif
+#ifdef HAS_G3LOG
+    ret.push_back (std::unique_ptr<logger> (new g3log()));
+#endif
     return std::move (ret);
 }
 /*----------------------------------------------------------------------------*/
