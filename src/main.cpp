@@ -50,6 +50,9 @@ static logvector init_logvector()
     ret.push_back (std::unique_ptr<logger> (new spdlog_async()));
     ret.push_back (std::unique_ptr<logger> (new spdlog_sync()));
 #endif
+#ifdef HAS_GLOG
+    ret.push_back (std::unique_ptr<logger> (new glog()));
+#endif
     return std::move (ret);
 }
 /*----------------------------------------------------------------------------*/

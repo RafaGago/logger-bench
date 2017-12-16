@@ -90,7 +90,7 @@ int malc_base::enqueue_msgs (int count)
     bl_err err;
     int success = 0;
     for (int i = 0; i < count; ++i) {
-        log_error (err, LOG_STRING " {}", i);
+        log_error (err, STRING_TO_LOG " {}", i);
         success += (err == bl_ok);
     }
     return success;
@@ -101,7 +101,7 @@ void malc_base::fill_latencies(latency_measurements& lm, int count)
     bl_err err;
     for (int i = 0; i < count; ++i) {
         uint64_t start = ns_now();
-        log_error (err, LOG_STRING " {}", i);
+        log_error (err, STRING_TO_LOG " {}", i);
         lm.add_sample (ns_now() - start, err == bl_ok);
     }
 }

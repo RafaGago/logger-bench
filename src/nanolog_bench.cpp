@@ -26,7 +26,7 @@ void nanolog_bench::destroy() {}
 int nanolog_bench::enqueue_msgs (int count)
 {
     for (int i = 0; i < count; ++i) {
-        LOG_INFO << LOG_STRING << i;
+        LOG_INFO << STRING_TO_LOG << i;
     }
     return count;
 }
@@ -35,7 +35,7 @@ void nanolog_bench::fill_latencies(latency_measurements& lm, int count)
 {
     for (int i = 0; i < count; ++i) {
         uint64_t start = ns_now();
-        LOG_INFO << LOG_STRING << i;
+        LOG_INFO << STRING_TO_LOG << i;
         lm.add_sample (ns_now() - start, true);
     }
 }

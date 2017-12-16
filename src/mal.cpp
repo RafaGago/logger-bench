@@ -56,7 +56,7 @@ int mal_base::enqueue_msgs (int count)
 {
     int success = 0;
     for (int i = 0; i < count; ++i) {
-        bool s = log_error_i (*m_log, LOG_STRING " {}", i);
+        bool s = log_error_i (*m_log, STRING_TO_LOG " {}", i);
         success += (s == true);
     }
     return success;
@@ -66,7 +66,7 @@ void mal_base::fill_latencies(latency_measurements& lm, int count)
 {
     for (int i = 0; i < count; ++i) {
         uint64_t start = ns_now();
-        bool success = log_error_i (*m_log, LOG_STRING " {}", i);
+        bool success = log_error_i (*m_log, STRING_TO_LOG " {}", i);
         lm.add_sample (ns_now() - start, success);
     }
 }
