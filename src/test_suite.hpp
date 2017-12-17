@@ -72,36 +72,37 @@ static bool run_throughput(
         cerr << "logger creation failed: " << l.get_name() << "\n";
         return false;
     }
-
     if (thread_count > 1) {
-      for (unsigned i = 0; i < thread_count; ++i) {
-          throughput_result& thread_results = results[i];
-          threads[i] = thread ([=, &l, &initialized, &thread_results]()
-          {
-              set_thread_cpu (i);
-              l.prepare_thread (mem_bytes / thread_count);
-              initialized.fetch_add (1, memory_order_relaxed);
-              while (initialized.load (memory_order_relaxed) >= 0) {
-                  this_thread::yield();
-              }
-              auto start  = std::chrono::system_clock::now();
-              int successes = l.enqueue_msgs (msgs_thr);
-              auto end = std::chrono::system_clock::now();
-              std::atomic_thread_fence (std::memory_order_relaxed);
-              thread_results.faults = msgs_thr - successes;
-              thread_results.start  = start;
-              thread_results.end    = end;
-          });
-      }
-      while (initialized.load (memory_order_relaxed) != thread_count) {
-          this_thread::yield();
-      }
-      initialized.store (-1, memory_order_relaxed);
-      for (unsigned i = 0; i < thread_count; ++i) {
-          threads[i].join();
-      }
-      l.terminate();
-      total_end = std::chrono::system_clock::now();
+        /*set this thread to a free CPU if possible*/
+        set_thread_cpu (thread_count);
+        for (unsigned i = 0; i < thread_count; ++i) {
+            throughput_result& thread_results = results[i];
+            threads[i] = thread ([=, &l, &initialized, &thread_results]()
+            {
+                set_thread_cpu (i);
+                l.prepare_thread (mem_bytes / thread_count);
+                initialized.fetch_add (1, memory_order_relaxed);
+                while (initialized.load (memory_order_relaxed) >= 0) {
+                    this_thread::yield();
+                }
+                auto start  = std::chrono::system_clock::now();
+                int successes = l.enqueue_msgs (msgs_thr);
+                auto end = std::chrono::system_clock::now();
+                std::atomic_thread_fence (std::memory_order_relaxed);
+                thread_results.faults = msgs_thr - successes;
+                thread_results.start  = start;
+                thread_results.end    = end;
+            });
+        }
+        while (initialized.load (memory_order_relaxed) != thread_count) {
+            this_thread::yield();
+        }
+        initialized.store (-1, memory_order_relaxed);
+        for (unsigned i = 0; i < thread_count; ++i) {
+            threads[i].join();
+        }
+        l.terminate();
+        total_end = std::chrono::system_clock::now();
     }
     else {
         set_thread_cpu (0);
@@ -160,28 +161,30 @@ static bool run_latency(
         return false;
     }
     if (thread_count > 1) {
-      for (unsigned i = 0; i < thread_count; ++i) {
-          latency_measurements& lm = results[i];
-          lm.prepare (msgs_thr);
-          threads[i] = thread ([=, &l, &initialized, &lm]()
-          {
-              set_thread_cpu (i);
-              l.prepare_thread (mem_bytes / thread_count);
-              initialized.fetch_add (1, memory_order_relaxed);
-              while (initialized.load (memory_order_relaxed) >= 0) {
-                  this_thread::yield();
-              }
-              l.fill_latencies (lm, msgs_thr);
-          });
-      }
-      while (initialized.load (memory_order_relaxed) != thread_count) {
-          this_thread::yield();
-      }
-      initialized.store (-1, memory_order_relaxed);
-      for (unsigned i = 0; i < thread_count; ++i) {
-          threads[i].join();
-      }
-      l.terminate();
+        /*set this thread to a free CPU if possible*/
+        set_thread_cpu (thread_count);
+        for (unsigned i = 0; i < thread_count; ++i) {
+            latency_measurements& lm = results[i];
+            lm.prepare (msgs_thr);
+            threads[i] = thread ([=, &l, &initialized, &lm]()
+            {
+                set_thread_cpu (i);
+                l.prepare_thread (mem_bytes / thread_count);
+                initialized.fetch_add (1, memory_order_relaxed);
+                while (initialized.load (memory_order_relaxed) >= 0) {
+                    this_thread::yield();
+                }
+                l.fill_latencies (lm, msgs_thr);
+            });
+        }
+        while (initialized.load (memory_order_relaxed) != thread_count) {
+            this_thread::yield();
+        }
+        initialized.store (-1, memory_order_relaxed);
+        for (unsigned i = 0; i < thread_count; ++i) {
+            threads[i].join();
+        }
+        l.terminate();
     }
     else {
         set_thread_cpu (0);
