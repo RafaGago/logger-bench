@@ -7,12 +7,12 @@ set (VERSION_MINOR 0)
 set (VERSION_REV 0)
 set (VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}")
 
-option(MALC "mini async log C enabled" off)
+option(MALC "mini async log C enabled" on)
 option(MAL "mini async log enabled" on)
 option(NANOLOG "NanoLog enabled" off)
 option(SPDLOG "spdlog enabled" off)
 option(GLOG "Google log enabled" off)
-option(G3LOG "G3 log enabled" on)
+option(G3LOG "G3 log enabled" off)
 option(LLCPP "LLCP enabled" off)
 
 project(logger_bench VERSION ${VERSION_FULL})
@@ -51,14 +51,12 @@ endif()
 #-- malc -----------------------------------------------------------------------
 
 if (MALC)
-    #PATCH_COMMAND shouldn't be necessary if CMake cloned with --recursive
     ExternalProject_Add(
         malc_artifacts
         GIT_REPOSITORY    https://github.com/RafaGago/mini-async-log-c.git
-        GIT_TAG           ba721eb9915577a361205cc3bfbea5c04ec55247
-        PATCH_COMMAND     git submodule update --init --recursive
+        GIT_TAG           4c8be62c8bce1fab463b25b783cf1a400f17823a
         CONFIGURE_COMMAND
-            meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dno_compressed_builtins=true -Dno_compressed_ptrs=true
+            meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dno_compressed_builtins=true -Dno_compressed_ptrs=true -Dbare=true
         UPDATE_COMMAND    ""
         BUILD_IN_SOURCE   1
         BUILD_COMMAND     ninja -C malc_build
