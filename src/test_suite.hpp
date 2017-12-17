@@ -245,9 +245,11 @@ static int run_tests(
               if (!success) {
                 return 1;
               }
-              float rate = (double) msgs / (double) tr->producer_ns;
+              float rate = (double) (msgs - tr->throughput_faults);
+              rate /= (double) tr->producer_ns;
               rate *= 1000000;
-              float trate = (double) msgs / (double) tr->total_ns;
+              float trate = (double) (msgs - tr->throughput_faults);
+              trate /= (double) tr->total_ns;
               trate *= 1000000;
               cout << "Kmsgs/s: "    << rate;
               cout << ", faults: "   << tr->throughput_faults;
