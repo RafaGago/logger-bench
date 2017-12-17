@@ -19,6 +19,7 @@ struct test_result {
     uint32_t    latency_ns_95;
     uint32_t    latency_ns_97;
     uint32_t    latency_ns_99;
+    uint32_t    latency_ns_999;
     uint32_t    latency_ns_min;
     uint32_t    latency_ns_max;
 };

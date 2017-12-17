@@ -51,11 +51,13 @@ public:
         }
         lm.reset();
     }
-    uint32_t get_percentile_ns (int percentile) const
+    uint32_t get_percentile_ns (double percentile) const
     {
         assert (m_results.size());
-        float idx = ((float) m_results.size() / 100.) * (float) percentile;
-        return m_results[(uint32_t) idx];
+        double step  = ((double) m_results.size()) / 100.;
+        uint64_t idx = (uint64_t) round (step * percentile);
+        /*improvement for small data sets: some type of interpolation*/
+        return m_results[std::min (idx, m_results.size() - 1)];
     }
     uint32_t get_min_ns() const
     {

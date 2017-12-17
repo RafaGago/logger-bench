@@ -196,13 +196,14 @@ static bool run_latency(
     }
     results[0].finish();
     tr.latency_faults = msgs - results[0].get_successes();
-    tr.latency_ns_50  = results[0].get_percentile_ns (50);
-    tr.latency_ns_75  = results[0].get_percentile_ns (75);
-    tr.latency_ns_85  = results[0].get_percentile_ns (85);
-    tr.latency_ns_90  = results[0].get_percentile_ns (90);
-    tr.latency_ns_95  = results[0].get_percentile_ns (95);
-    tr.latency_ns_97  = results[0].get_percentile_ns (97);
-    tr.latency_ns_99  = results[0].get_percentile_ns (99);
+    tr.latency_ns_50  = results[0].get_percentile_ns (50.);
+    tr.latency_ns_75  = results[0].get_percentile_ns (75.);
+    tr.latency_ns_85  = results[0].get_percentile_ns (85.);
+    tr.latency_ns_90  = results[0].get_percentile_ns (90.);
+    tr.latency_ns_95  = results[0].get_percentile_ns (95.);
+    tr.latency_ns_97  = results[0].get_percentile_ns (97.);
+    tr.latency_ns_99  = results[0].get_percentile_ns (99.);
+    tr.latency_ns_999 = results[0].get_percentile_ns (99.9);
     tr.latency_ns_min = results[0].get_min_ns();
     tr.latency_ns_max = results[0].get_max_ns();
     return true;
@@ -245,11 +246,11 @@ static int run_tests(
               rate *= 1000000;
               float trate = (double) msgs / (double) tr->total_ns;
               trate *= 1000000;
-              cout << "Kmsgs/s: " << rate;
-              cout << ", faults: "  << tr->throughput_faults;
-              cout << ", l97(ns):"  << tr->latency_ns_97;
-              cout << ", l99(ns):"  << tr->latency_ns_99;
-              cout << ", lmax(ns):" << tr->latency_ns_max;
+              cout << "Kmsgs/s: "    << rate;
+              cout << ", faults: "   << tr->throughput_faults;
+              cout << ", l97(ns):"   << tr->latency_ns_97;
+              cout << ", l99.9(ns):" << tr->latency_ns_999;
+              cout << ", lmax(ns):"  << tr->latency_ns_max;
               cout << "\n";
           }
       }
