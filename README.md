@@ -21,11 +21,23 @@ The codebase tries to remain readable by sticking to the most basic C++ concepts
 only (e.g. no templates). Contributions with new loggers or test method
 improvements are welcome.
 
+Metodology
+==========
+
+All: Tests are run with multiple threads. Each thread has a fixed CPU (affinity
+is set).
+
+Througput: The time spent on each thread is measured. Then all the times are
+added and divided by the number of threads.
+
+Latency: Every log entry is measured with the wall clock. Every sample is saved
+to a contiguous array.
+
 Implementation notes
 ====================
 
 As no comparison is fair, this random list tries to maintain a non biased
-summary of logger traits that can affect the performance.
+summary of logger traits that one has to consider when looking at the results.
 
 malc
 ----
@@ -33,19 +45,21 @@ malc
 * Timestamping at the consumer side.
 
 * Timestamps from boot time. Real calendar time has to be parsed from the file
-  names (they contain the calendar and machine boot counter). If a conversion is
-  desired the log lines must be processed by an external script.
+  names (they contain the calendar and machine boot counter). If a conversion
+  to calendar time is desired the log lines must be processed by an external
+  script.
 
-* The format string has to be a literal _always_.
+* The format string has _always_ to be a literal.
 
 mal
 ---
 
 * Timestamping at the consumer side.
 
-* Timestamps from boot. Real calendar time has to be parsed from the file names
-  (they contain the calendar and machine boot counter). If a conversion is
-  desired the log lines must be processed by an external script.
+* Timestamps from boot time. Real calendar time has to be parsed from the file
+  names (they contain the calendar and machine boot counter). If a conversion
+  to calendar time is desired the log lines must be processed by an external
+  script.
 
 * The format string has to be a literal _always_.
 
@@ -55,7 +69,7 @@ Nanolog
 * Buffer sizes of 8MB are not configurable, so if a comparison has to be kept
   fair all the other loggers have to use 8MB buffers Arbitrary memory usage.
 
-* Logs without time zone.
+* Logs without time zone (UTC).
 
 spdlog
 ------
@@ -65,7 +79,9 @@ spdlog
 Glog
 ----
 
-* This logger is not asynchronous if I remember correctly.
+* This logger is not asynchronous if I remember correctly. If it is the it has
+  to have a worker thread, which isn't shut down when running the tests for the
+  other loggers (could possibly spin instead of block).
 
 G3log
 -----
