@@ -44,10 +44,11 @@ string (STRIP ${ARCH_TRIPLET} ARCH_TRIPLET)
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
     set (MESON_BUILDTYPE debug)
+elseif(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+    set (MESON_BUILDTYPE debugoptimized)
 else()
     set (MESON_BUILDTYPE release)
 endif()
-
 #-- malc -----------------------------------------------------------------------
 
 if (MALC)
