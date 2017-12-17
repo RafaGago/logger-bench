@@ -251,7 +251,7 @@ static int run_tests(
               trate *= 1000000;
               cout << "Kmsgs/s: "    << rate;
               cout << ", faults: "   << tr->throughput_faults;
-              cout << ", l97(ns):"   << tr->latency_ns_97;
+              cout << ", l50(ns):"   << tr->latency_ns_50;
               cout << ", l99.9(ns):" << tr->latency_ns_999;
               cout << ", lmax(ns):"  << tr->latency_ns_max;
               cout << "\n";
