@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <atomic>
 #include <cassert>
 #include <algorithm>
 
@@ -15,6 +16,9 @@ public:
     }
     void add_sample (uint32_t ns, bool is_success)
     {
+        /* as this can be inlined, avoid optimizations changing the moment when
+        the timestamp is taken */
+        std::atomic_thread_fence (std::memory_order_relaxed);
         m_results.push_back (ns);
         m_min = std::min (m_min, ns);
         m_max = std::max (m_max, ns);
