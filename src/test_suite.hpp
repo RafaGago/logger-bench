@@ -137,12 +137,25 @@ static bool run_throughput(
     return true;
 }
 /*----------------------------------------------------------------------------*/
+static uint32_t get_minimum_timestamp_latency()
+{
+    uint32_t min = (uint32_t) -1;
+    for (int i = 0; i < 100000; ++i) {
+        uint32_t first = ns_now();
+        uint32_t l = ns_now() - first;
+        l   = (l > 0) ? l : (uint32_t) -1;
+        min = (l < min) ? l : min;
+    }
+    return min != (uint32_t) -1 ? min : 0;
+}
+/*----------------------------------------------------------------------------*/
 static bool run_latency(
     test_result&          tr,
     logger&               l,
     int                   msgs,
     int                   thread_count,
-    std::size_t           mem_bytes
+    std::size_t           mem_bytes,
+    uint32_t              timestamp_latency_ns
     )
 {
     using namespace std;
@@ -165,7 +178,7 @@ static bool run_latency(
         set_thread_cpu (thread_count);
         for (unsigned i = 0; i < thread_count; ++i) {
             latency_measurements& lm = results[i];
-            lm.prepare (msgs_thr);
+            lm.prepare (msgs_thr, timestamp_latency_ns);
             threads[i] = thread ([=, &l, &initialized, &lm]()
             {
                 set_thread_cpu (i);
@@ -188,7 +201,7 @@ static bool run_latency(
     }
     else {
         set_thread_cpu (0);
-        results[0].prepare (msgs_thr);
+        results[0].prepare (msgs_thr, timestamp_latency_ns);
         l.prepare_thread (mem_bytes);
         l.fill_latencies (results[0], msgs_thr);
         l.terminate();
@@ -223,6 +236,10 @@ static int run_tests(
     using namespace std;
     test_results res;
     res.init (loggers.size(), thread_count_idxs, iterations);
+    uint32_t latency = get_minimum_timestamp_latency();
+    cout << "timestamp latency(ns): "
+         << latency
+         << ". -> subtracted from each latency sample\n";
 
     for (int it = 0; it < iterations; ++it) {
       cout << "iteration: " << it << "\n";
@@ -240,7 +257,7 @@ static int run_tests(
                 return 1;
               }
               success = run_latency(
-                  *tr, *loggers[l], msgs, threads, mem_bytes
+                  *tr, *loggers[l], msgs, threads, mem_bytes, latency
                   );
               if (!success) {
                 return 1;

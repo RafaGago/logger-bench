@@ -31,7 +31,9 @@ Througput: The time spent on each thread is measured. Then all the times are
 added and divided by the number of threads.
 
 Latency: Every log entry is measured with the wall clock. Every sample is saved
-to a contiguous array.
+to a contiguous array. An initial clock resolution test is done to see the
+minimum delay to take the timestamps. This value is subtracted from each
+sample.
 
 Implementation notes
 ====================

@@ -19,12 +19,14 @@ public:
         /* as this can be inlined, avoid optimizations changing the moment when
         the timestamp is taken */
         std::atomic_thread_fence (std::memory_order_relaxed);
-        m_results.push_back (ns);
-        m_min = std::min (m_min, ns);
-        m_max = std::max (m_max, ns);
+        uint32_t v = ns - m_min_measurable_ns;
+        v = v <= ns ? v : m_min_measurable_ns;
+        m_results.push_back (v);
+        m_min = std::min (m_min, v);
+        m_max = std::max (m_max, v);
         m_success += (is_success == true);
     }
-    bool prepare (int elements)
+    bool prepare (int elements, uint32_t min_measurable_ns)
     {
         if (elements < 0) {
             return false;
@@ -32,6 +34,7 @@ public:
         reset();
         m_results.reserve (elements);
         m_expected = elements;
+        m_min_measurable_ns = min_measurable_ns;
         return true;
     }
     bool finish()
@@ -80,15 +83,17 @@ private:
     {
         m_results.clear();
         m_results.reserve (0);
-        m_min      = (uint32_t) -1;
-        m_max      = 0;
-        m_expected = 0;
-        m_success  = 0;
+        m_min               = (uint32_t) -1;
+        m_max               = 0;
+        m_expected          = 0;
+        m_success           = 0;
+        m_min_measurable_ns = 0;
     }
 
     std::vector<uint32_t> m_results;
     uint32_t              m_min;
     uint32_t              m_max;
+    uint32_t              m_min_measurable_ns;
     int                   m_expected;
     uint64_t              m_success;
 };
