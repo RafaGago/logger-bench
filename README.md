@@ -21,6 +21,11 @@ The codebase tries to remain readable by sticking to the most basic C++ concepts
 only (e.g. no templates). Contributions with new loggers or test method
 improvements are welcome.
 
+Note that enablement of some loggers requires to turn on CMake options (see
+CMakeLists.txt), eg:
+
+> cmake .. -DNANOLOG=on -DSPDLOG=on -GLOG=on -DG3LOG=on
+
 Metodology
 ==========
 
@@ -69,7 +74,7 @@ Nanolog
 -------
 
 * Buffer sizes of 8MB are not configurable, so if a comparison has to be kept
-  fair all the other loggers have to use 8MB buffers Arbitrary memory usage.
+  fair all the other loggers have to use 8MB buffers. Arbitrary memory usage.
 
 * Logs without time zone (UTC).
 
