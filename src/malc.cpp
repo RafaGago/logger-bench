@@ -30,7 +30,7 @@ bool malc_base::create (int fixed_queues_bytes)
       return false;
     }
     err = malc_create (m_log, &m_alloc);
-    if (err) {
+    if (err.bl) {
       fprintf (stderr, "Error creating the malc instance\n");
       destroy();
       return false;
@@ -39,7 +39,7 @@ bool malc_base::create (int fixed_queues_bytes)
     /* destination register */
     u32 file_id;
     err = malc_add_destination (m_log, &file_id, &malc_file_dst_tbl);
-    if (err) {
+    if (err.bl) {
       fprintf (stderr, "Error creating the file destination\n");
       destroy();
       return false;
@@ -47,7 +47,7 @@ bool malc_base::create (int fixed_queues_bytes)
     /* logger startup */
     malc_cfg cfg;
     err = malc_get_cfg (m_log, &cfg);
-    if (err) {
+    if (err.bl) {
       fprintf (stderr, "bug when retrieving the logger configuration\n");
       destroy();
       return false;
@@ -60,7 +60,7 @@ bool malc_base::create (int fixed_queues_bytes)
 
     set_cfg (cfg, fixed_queues_bytes);
     err = malc_init (m_log, &cfg);
-    if (err) {
+    if (err.bl) {
         fprintf (stderr, "unable to start logger\n");
         destroy();
         return false;
@@ -91,7 +91,7 @@ int malc_base::enqueue_msgs (int count)
     int success = 0;
     for (int i = 0; i < count; ++i) {
         log_error (err, STRING_TO_LOG " {}", i);
-        success += (err == bl_ok);
+        success += (err.bl == bl_ok);
     }
     return success;
 }
@@ -102,7 +102,7 @@ void malc_base::fill_latencies(latency_measurements& lm, int count)
     for (int i = 0; i < count; ++i) {
         uint64_t start = ns_now();
         log_error (err, STRING_TO_LOG " {}", i);
-        lm.add_sample (ns_now() - start, err == bl_ok);
+        lm.add_sample (ns_now() - start, err.bl == bl_ok);
     }
 }
 /*----------------------------------------------------------------------------*/
@@ -118,7 +118,8 @@ char const* malc_tls::get_description() const
 /*----------------------------------------------------------------------------*/
 bool malc_tls::prepare_thread(int fixed_queues_bytes)
 {
-    return malc_producer_thread_local_init (m_log, fixed_queues_bytes) == bl_ok;
+    bl_err err = malc_producer_thread_local_init (m_log, fixed_queues_bytes);
+    return  err.bl == bl_ok;
 }
 /*----------------------------------------------------------------------------*/
 void malc_tls::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)

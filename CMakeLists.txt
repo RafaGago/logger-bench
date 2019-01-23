@@ -55,7 +55,7 @@ if (MALC)
     ExternalProject_Add(
         malc_artifacts
         GIT_REPOSITORY    https://github.com/RafaGago/mini-async-log-c.git
-        GIT_TAG           033362172482beba8794ea706759d5c7a646a000
+        GIT_TAG           316a16729a65b1b6f4727929f2d0ec853507c8bc
         CONFIGURE_COMMAND
             meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dno_compressed_builtins=true -Dno_compressed_ptrs=true -Dbare=true
         UPDATE_COMMAND    ""
