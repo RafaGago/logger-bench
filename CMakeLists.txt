@@ -57,7 +57,7 @@ if (MALC)
         GIT_REPOSITORY    https://github.com/RafaGago/mini-async-log-c.git
         GIT_TAG           316a16729a65b1b6f4727929f2d0ec853507c8bc
         CONFIGURE_COMMAND
-            meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dno_compressed_builtins=true -Dno_compressed_ptrs=true -Dbare=true
+            meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dcompressed_builtins=false -Dcompressed_ptrs=false -Dbare=true
         UPDATE_COMMAND    ""
         BUILD_IN_SOURCE   1
         BUILD_COMMAND     ninja -C malc_build
