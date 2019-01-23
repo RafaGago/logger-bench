@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cassert>
 #include <algorithm>
+#include <cmath>
 
 /*----------------------------------------------------------------------------*/
 class latency_measurements {
@@ -62,7 +63,7 @@ public:
     {
         assert (m_results.size());
         double step  = ((double) m_results.size()) / 100.;
-        uint64_t idx = (uint64_t) round (step * percentile);
+        uint64_t idx = (uint64_t) std::round (step * percentile);
         /*improvement for small data sets: some type of interpolation*/
         return m_results[std::min (idx, m_results.size() - 1)];
     }
