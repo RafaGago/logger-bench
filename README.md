@@ -89,3 +89,9 @@ G3log
 -----
 
 * No remarks. I know almost nothing about the implementation.
+
+
+Results
+=======
+Running the benchmark on 2x Intel(R) Xeon(R) CPU E5-2667 v2 @ 3.30GHz produces the following result:
+![Screenshot](docs/pics/benchmark_results.png)
