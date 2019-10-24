@@ -15,6 +15,8 @@
 #include <latency_measurements.hpp>
 #include <timestamp_ns.hpp>
 
+static int max_threads = 16;
+
 /*----------------------------------------------------------------------------*/
 #if __linux__
 #define GNU_SOURCE
@@ -35,7 +37,7 @@ static void set_thread_cpu (unsigned i)
 #error "Unsupported platform"
 #endif
 /*----------------------------------------------------------------------------*/
-static const int thread_count[] = { 1, 2, 4, 8, 16 };
+static const int thread_count[] = { 1, 2, 4, 8, max_threads };
 static const int thread_count_idxs =
     sizeof thread_count / sizeof thread_count[0];
 /*----------------------------------------------------------------------------*/

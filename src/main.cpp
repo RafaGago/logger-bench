@@ -126,8 +126,9 @@ static int parse_args(
         cerr << "invalid message count: " << argv[2] << "\n\n" ;
         return 1;
     }
-    if (msgs <= 0) {
-        cerr << "the message count must be bigger than 0\n\n" ;
+    if (msgs <= max_threads) {
+        cerr << "the message count must be bigger than "<<  max_threads
+             << "\n\n";
         return 1;
     }
     if (argc < 4) {
