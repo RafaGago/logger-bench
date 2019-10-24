@@ -35,6 +35,12 @@ target_include_directories(
     ${LOGGER_INSTALL}/include/
     )
 
+if (NOT LOGGER_MEMORY_KB)
+    set(LOGGER_MEMORY_KB 8192)
+endif()
+
+target_compile_definitions(logger-bench PRIVATE LOGGER_MEMORY_KB=${LOGGER_MEMORY_KB})
+
 #-- Build system specific things -----------------------------------------------
 
 execute_process(

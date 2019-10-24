@@ -44,8 +44,10 @@ sample.
 For loggers with fixes queues or thread local storage, they try to be configured
 to a size of 8MB, but unfortunately on most loggers the queue sizes are not
 configurable, at least not in an obvious way. PR's are welcome. If some logger
-shows faults try to edit the queue size on main.cpp:main, the variable is called
-mem.
+shows faults you can increase the memory amount passed as a recommendation to
+the loggers to use by using the LOGGER_MEMORY_KB cmake variable.
+
+> cmake .. -DLOGGER_MEMORY_KB=1024
 
 Implementation notes
 ====================
