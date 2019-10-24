@@ -12,8 +12,8 @@
 #include <mal.hpp>
 #endif
 
-#ifdef HAS_NANOLOG
-#include <nanolog_bench.hpp>
+#ifdef HAS_NANOLOG_IYENGAR
+#include <nanolog_iyengar.hpp>
 #endif
 
 #ifdef HAS_SPDLOG
@@ -28,8 +28,8 @@
 #include <g3log.hpp>
 #endif
 
-#ifdef HAS_NANOLOG2
-#include <nanolog2.hpp>
+#ifdef HAS_NANOLOG
+#include <nanolog.hpp>
 #endif
 
 typedef std::vector<std::unique_ptr<logger>> logvector;
@@ -47,8 +47,8 @@ static logvector init_logvector()
     ret.push_back (std::unique_ptr<logger> (new mal_heap()));
     ret.push_back (std::unique_ptr<logger> (new mal_fixed()));
 #endif
-#ifdef HAS_NANOLOG
-    ret.push_back (std::unique_ptr<logger> (new nanolog_bench()));
+#ifdef HAS_NANOLOG_IYENGAR
+    ret.push_back (std::unique_ptr<logger> (new nanolog_iyengar()));
 #endif
 #ifdef HAS_SPDLOG
     ret.push_back (std::unique_ptr<logger> (new spdlog_async()));
@@ -60,8 +60,8 @@ static logvector init_logvector()
 #ifdef HAS_G3LOG
     ret.push_back (std::unique_ptr<logger> (new g3log()));
 #endif
-#ifdef HAS_NANOLOG2
-    ret.push_back (std::unique_ptr<logger> (new nanolog2()));
+#ifdef HAS_NANOLOG
+    ret.push_back (std::unique_ptr<logger> (new nanolog()));
 #endif
     return std::move (ret);
 }

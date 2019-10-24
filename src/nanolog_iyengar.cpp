@@ -5,15 +5,15 @@
 
 #include <NanoLog.hpp>
 #include <NanoLog.cpp>
-#include <nanolog_bench.hpp>
+#include <nanolog_iyengar.hpp>
 /*----------------------------------------------------------------------------*/
-bool nanolog_bench::create (int fixed_queues_bytes)
+bool nanolog_iyengar::create (int fixed_queues_bytes)
 {
     nanolog::initialize (nanolog::GuaranteedLogger(), "./", "nanolog", 1);
     return true;
 }
 /*----------------------------------------------------------------------------*/
-bool nanolog_bench::terminate()
+bool nanolog_iyengar::terminate()
 {
     /* workaround: this is relying on internals to shut it down, not on the
     public API */
@@ -21,9 +21,9 @@ bool nanolog_bench::terminate()
     return true;
 }
 /*----------------------------------------------------------------------------*/
-void nanolog_bench::destroy() {}
+void nanolog_iyengar::destroy() {}
 /*----------------------------------------------------------------------------*/
-int nanolog_bench::enqueue_msgs (int count)
+int nanolog_iyengar::enqueue_msgs (int count)
 {
     for (int i = 0; i < count; ++i) {
         LOG_INFO << STRING_TO_LOG << i;
@@ -31,7 +31,7 @@ int nanolog_bench::enqueue_msgs (int count)
     return count;
 }
 /*----------------------------------------------------------------------------*/
-void nanolog_bench::fill_latencies(latency_measurements& lm, int count)
+void nanolog_iyengar::fill_latencies(latency_measurements& lm, int count)
 {
     for (int i = 0; i < count; ++i) {
         uint64_t start = ns_now();
@@ -40,13 +40,13 @@ void nanolog_bench::fill_latencies(latency_measurements& lm, int count)
     }
 }
 /*----------------------------------------------------------------------------*/
-char const* nanolog_bench::get_name() const
+char const* nanolog_iyengar::get_name() const
 {
-    return "nanolog";
+    return "nanolog-iyengar";
 }
 /*----------------------------------------------------------------------------*/
-char const* nanolog_bench::get_description() const
+char const* nanolog_iyengar::get_description() const
 {
-    return "NanoLog GuaranteedLogger";
+    return "Iyengar111's NanoLog GuaranteedLogger";
 }
 /*----------------------------------------------------------------------------*/

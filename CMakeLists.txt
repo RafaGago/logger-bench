@@ -121,24 +121,24 @@ endif (MAL)
 
 #-- nanolog --------------------------------------------------------------------
 
-if (NANOLOG)
-    set (NANOLOG_REPO ${CMAKE_BINARY_DIR}/nanolog-git)
+if (NANOLOG_IYENGAR)
+    set (NANOLOG_IYENGAR_REPO ${CMAKE_BINARY_DIR}/nanolog-iyengar-git)
 
     ExternalProject_Add(
-        nanolog_clone
+        nanolog_iyengar_clone
         GIT_REPOSITORY    https://github.com/Iyengar111/NanoLog.git
         GIT_TAG           40a53c36e0336af45f7664abeb939f220f78273e
-        SOURCE_DIR        ${NANOLOG_REPO}
+        SOURCE_DIR        ${NANOLOG_IYENGAR_REPO}
         UPDATE_COMMAND    ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND     ""
         INSTALL_COMMAND   ""
         )
-    add_dependencies (logger-bench nanolog_clone)
-    target_compile_definitions (logger-bench PRIVATE HAS_NANOLOG=1)
-    target_include_directories (logger-bench PRIVATE ${NANOLOG_REPO})
-    target_sources (logger-bench PRIVATE ${SOURCES}/nanolog_bench.cpp)
-endif (NANOLOG)
+    add_dependencies (logger-bench nanolog_iyengar_clone)
+    target_compile_definitions (logger-bench PRIVATE HAS_NANOLOG_IYENGAR=1)
+    target_include_directories (logger-bench PRIVATE ${NANOLOG_IYENGAR_REPO})
+    target_sources (logger-bench PRIVATE ${SOURCES}/nanolog_iyengar.cpp)
+endif (NANOLOG_IYENGAR)
 
 #-- spdlog ---------------------------------------------------------------------
 
@@ -236,37 +236,37 @@ if (LLCPP)
         )
 endif (LLCPP)
 
-#-- nanolog2--------------------------------------------------------------------
+#-- nanolog---------------------------------------------------------------------
 
-if (NANOLOG2)
-    set (NANOLOG2_REPO ${CMAKE_BINARY_DIR}/nanolog2-git)
+if (NANOLOG)
+    set (NANOLOG_REPO ${CMAKE_BINARY_DIR}/nanolog-standford-git)
 
     ExternalProject_Add(
-        nanolog2_artifacts
+        nanolog_artifacts
         GIT_REPOSITORY    https://github.com/PlatformLab/NanoLog.git
         GIT_TAG           dfdd4639b5731d69207dfd72a020e39972a8c720
-        SOURCE_DIR        ${NANOLOG2_REPO}
+        SOURCE_DIR        ${NANOLOG_REPO}
         UPDATE_COMMAND    ""
         CONFIGURE_COMMAND ""
-        BUILD_COMMAND     $(MAKE) -j4 -C ${NANOLOG2_REPO}/runtime
+        BUILD_COMMAND     $(MAKE) -j4 -C ${NANOLOG_REPO}/runtime
         INSTALL_COMMAND   ""
         )
-    add_library (nanolog2 STATIC IMPORTED)
+    add_library (nanolog STATIC IMPORTED)
     set_property(
-        TARGET                     nanolog2
-        PROPERTY IMPORTED_LOCATION ${NANOLOG2_REPO}/runtime/libNanoLog.a
+        TARGET                     nanolog
+        PROPERTY IMPORTED_LOCATION ${NANOLOG_REPO}/runtime/libNanoLog.a
         )
-    add_dependencies (nanolog2 nanolog2_artifacts)
+    add_dependencies (nanolog nanolog_artifacts)
 
-    target_compile_definitions (logger-bench PRIVATE HAS_NANOLOG2=1)
-    target_include_directories (logger-bench PRIVATE ${NANOLOG2_REPO}/runtime)
-    target_sources (logger-bench PRIVATE ${SOURCES}/nanolog2.cpp)
+    target_compile_definitions (logger-bench PRIVATE HAS_NANOLOG=1)
+    target_include_directories (logger-bench PRIVATE ${NANOLOG_REPO}/runtime)
+    target_sources (logger-bench PRIVATE ${SOURCES}/nanolog.cpp)
     set_property(
-        SOURCE ${SOURCES}/nanolog2.cpp APPEND
+        SOURCE ${SOURCES}/nanolog.cpp APPEND
         PROPERTY COMPILE_FLAGS -std=gnu++17
         )
-    target_link_libraries (logger-bench nanolog2 rt)
-endif (NANOLOG2)
+    target_link_libraries (logger-bench nanolog rt)
+endif (NANOLOG)
 
 #-- System libraries -----------------------------------------------------------
 

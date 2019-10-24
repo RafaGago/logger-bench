@@ -3,36 +3,36 @@
 #include <latency_measurements.hpp>
 #include <timestamp_ns.hpp>
 
-#include <nanolog2.hpp>
+#include <nanolog.hpp>
 #include <NanoLogCpp17.h>
 
-static const char logfile[] = "./logger-bench-nanolog2";
+static const char logfile[] = "./logger-bench-nanolog";
 
 /*----------------------------------------------------------------------------*/
-bool nanolog2::create (int fixed_queues_bytes)
+bool nanolog::create (int fixed_queues_bytes)
 {
     NanoLog::setLogFile (logfile);
     NanoLog::setLogLevel (NanoLog::DEBUG);
     return true;
 }
 /*----------------------------------------------------------------------------*/
-bool nanolog2::terminate()
+bool nanolog::terminate()
 {
     NanoLog::sync();
     remove (logfile);
     return true;
 }
 /*----------------------------------------------------------------------------*/
-void nanolog2::destroy() {}
+void nanolog::destroy() {}
 /*----------------------------------------------------------------------------*/
-bool nanolog2::prepare_thread(int fixed_queues_bytes)
+bool nanolog::prepare_thread(int fixed_queues_bytes)
 {
-    /*NOTICE, no way to decide the buffer */
+    /*NOTICE, no way to pass memory size restructions*/
     NanoLog::preallocate();
     return true;
 }
 /*----------------------------------------------------------------------------*/
-int nanolog2::enqueue_msgs (int count)
+int nanolog::enqueue_msgs (int count)
 {
     for (int i = 0; i < count; ++i) {
         NANO_LOG (NanoLog::NOTICE, "%s %i", STRING_TO_LOG, i);
@@ -40,7 +40,7 @@ int nanolog2::enqueue_msgs (int count)
     return count;
 }
 /*----------------------------------------------------------------------------*/
-void nanolog2::fill_latencies(latency_measurements& lm, int count)
+void nanolog::fill_latencies(latency_measurements& lm, int count)
 {
     for (int i = 0; i < count; ++i) {
         uint64_t start = ns_now();
@@ -49,13 +49,13 @@ void nanolog2::fill_latencies(latency_measurements& lm, int count)
     }
 }
 /*----------------------------------------------------------------------------*/
-char const* nanolog2::get_name() const
+char const* nanolog::get_name() const
 {
-    return "nanolog2";
+    return "nanolog";
 }
 /*----------------------------------------------------------------------------*/
-char const* nanolog2::get_description() const
+char const* nanolog::get_description() const
 {
-    return "NanoLog2 C++17";
+    return "NanoLog C++17 ((C) Standford University)";
 }
 /*----------------------------------------------------------------------------*/

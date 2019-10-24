@@ -108,7 +108,7 @@ exposes a simple printf-like API.
 
 https://github.com/PlatformLab/NanoLog
 
-> cmake .. -DNANOLOG2=on
+> cmake .. -DNANOLOG=on
 
 Requires: C++17, make
 
@@ -144,7 +144,7 @@ name that already existed.
 
 https://github.com/Iyengar111/NanoLog
 
-> cmake .. -DNANOLOG=on
+> cmake .. -DNANOLOG_IYENGAR=on
 
 Requires: C++11, header only.
 
@@ -167,7 +167,7 @@ mini-async-log* loggers can be turned off too:
 Execution
 =========
 
-> logger-bench <iterations> <messages/iteration> [loggers]...
+> logger-bench <iterations> <messages/iteration> <loggers>...
 
 Notes
 =====
@@ -223,8 +223,10 @@ Nanolog (Standford)
 * Binary-only logger. Not human-readable logs. A tool to convert the logs is
   provided.
 
-* It has no explicit initialization/deinitialization, so it must launch a
-  singleton thread that may affect the other logger's depending on what it does.
+* It has a background compression thread waking up each microsecond (see
+  runtime/Config.h). As this library is a singleton with no explicit
+  initialization/destruction this thread is actually running when the benchmarks
+  of other log libraries are running.
 
 G3log
 -----
