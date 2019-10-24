@@ -23,7 +23,7 @@ bool glog::create (int fixed_queues_bytes)
     /*glog log names are minute-based, it needs a file size that isn't
       filled in a minute, otherwise it compains a lot.*/
     FLAGS_max_log_size =  1024 * 1024 * 1024;
-    google::SetLogDestination (google::INFO, "./");
+    google::SetLogDestination (google::INFO, "");
     google::SetLogDestination (google::WARNING, "");
     google::SetLogDestination (google::ERROR, "");
     google::SetLogDestination (google::FATAL, "");
@@ -44,7 +44,7 @@ void glog::destroy() {}
 int glog::enqueue_msgs (int count)
 {
     for (int i = 0; i < count; ++i) {
-        LOG (ERROR) << STRING_TO_LOG << i;
+        LOG (INFO) << STRING_TO_LOG << i;
     }
     return count;
 }
@@ -53,7 +53,7 @@ void glog::fill_latencies(latency_measurements& lm, int count)
 {
     for (int i = 0; i < count; ++i) {
         uint64_t start = ns_now();
-        LOG (ERROR) << STRING_TO_LOG << i;
+        LOG (INFO) << STRING_TO_LOG << i;
         lm.add_sample (ns_now() - start, true);
     }
 }

@@ -160,7 +160,7 @@ if (GLOG)
     ExternalProject_Add(
         glog_artifacts
         GIT_REPOSITORY https://github.com/google/glog.git
-        GIT_TAG        2063b387080c1e7adffd33ca07adff0eb346ff1a
+        GIT_TAG        4cc89c9e2b452db579397887c37f302fb28f6ca1
         UPDATE_COMMAND ""
         INSTALL_DIR    ${LOGGER_INSTALL}
         CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBUILD_SHARED_LIBS=off
