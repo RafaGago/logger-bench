@@ -55,7 +55,7 @@ if (MALC)
     ExternalProject_Add(
         malc_artifacts
         GIT_REPOSITORY    https://github.com/RafaGago/mini-async-log-c.git
-        GIT_TAG           316a16729a65b1b6f4727929f2d0ec853507c8bc
+        GIT_TAG           a77d49632f7c9614b9271ba3b9014905f65bd5da
         CONFIGURE_COMMAND
             meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dcompressed_builtins=false -Dcompressed_ptrs=false -Dbare=true
         UPDATE_COMMAND    ""
@@ -95,7 +95,7 @@ if (MAL)
     ExternalProject_Add(
         mal_artifacts
         GIT_REPOSITORY https://github.com/RafaGago/mini-async-log.git
-        GIT_TAG        82dccd192b0783dceec0898d178e38f7db5a1e69
+        GIT_TAG        dec11bca53482f44a9d52388dad1c5afafd4c146
         UPDATE_COMMAND ""
         INSTALL_DIR    ${LOGGER_INSTALL}
         CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBUILD_SHARED_LIBS=off
@@ -141,7 +141,7 @@ if (SPDLOG)
     ExternalProject_Add(
         spdlog_clone
         GIT_REPOSITORY    https://github.com/gabime/spdlog.git
-        GIT_TAG           e6b9fa577de852fd7b78a0a3d2837875e4425990
+        GIT_TAG           4858d7e454e66d347024a074749535b91ccbeed9
         SOURCE_DIR        ${SPDLOG_REPO}
         UPDATE_COMMAND    ""
         CONFIGURE_COMMAND ""
@@ -183,7 +183,7 @@ if (G3LOG)
     ExternalProject_Add(
         g3log_artifacts
         GIT_REPOSITORY https://github.com/KjellKod/g3log.git
-        GIT_TAG        0ddfd6dccc86818fa0e48c1e311c41d0120dec3b
+        GIT_TAG        f1491791785101d4ae948f8ecee7e9cc3e6b0be8
         UPDATE_COMMAND ""
         INSTALL_DIR    ${LOGGER_INSTALL}
         CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DCPACK_INSTALL_PREFIX=${LOGGER_INSTALL} -DG3_SHARED_LIB=off
@@ -198,6 +198,10 @@ if (G3LOG)
     target_link_libraries (logger-bench g3log)
     target_compile_definitions (logger-bench PRIVATE HAS_G3LOG=1)
     target_sources (logger-bench PRIVATE ${SOURCES}/g3log.cpp)
+    set_property(
+        SOURCE ${SOURCES}/g3log.cpp APPEND
+        PROPERTY COMPILE_FLAGS -std=gnu++17
+        )
 endif (G3LOG)
 
 #-- llcpp ----------------------------------------------------------------------
