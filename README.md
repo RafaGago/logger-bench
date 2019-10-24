@@ -1,56 +1,176 @@
 Logger benchmarks
 =================
 
-A project to place logger benchmarks. Previously they were polluting the
-mini-async-log repository with many git submodules.
+This is a project containing C/C++ log library benchmarks in a very easy to
+build fashion.
 
-This will use CMake external projects instead.
+As many other log library authors, I had my own tests polluting my repositories.
+This drove me to create this separate project.
 
-The main motivator for change was to measure latency as a percentile. C++
-Templates will be avoided as much as possible too (just for code readability).
-
-This compiles only on Linux for now.
-
-If malc is compiled, then there are dependencies on the meson and ninja build
-systems. (Ubuntu/Debian):
-
-> sudo apt install python3-pip ninja-build
-> sudo -H pip3 install meson
-
-The codebase tries to remain readable by sticking to the most basic C++ concepts
-only (e.g. no templates). Contributions with new loggers or test method
-improvements are welcome.
-
-Note that enablement of some loggers requires to turn on CMake options (see
-CMakeLists.txt), eg:
-
-> cmake .. -DNANOLOG=on -DSPDLOG=on -GLOG=on -DG3LOG=on
+The codebase tries to remain trivial by sticking to the most basic C++ concepts
+only. Contributions with new loggers or test method improvements are welcome.
 
 Metodology
 ==========
 
-All: Tests are run with multiple threads. Each thread has a fixed CPU (affinity
-is set). This benchmark, meant for asynchronous loggers, only measures the
-performance at the call site.
+* Tests performance at the calling site. Tailored for asynchronous loggers.
 
-Througput: The time spent on each thread is measured. Then all the times are
-added and divided by the number of threads.
+* Tests are run for different thread counts. Logger threads set CPU affinity.
 
-Latency: Every log entry is measured with the wall clock. Every sample is saved
-to a contiguous array. An initial clock resolution test is done to see the
-minimum delay to take the timestamps. This value is subtracted from each
-sample.
+* The throughput test is summing the time spent on each thread and dividing it
+  by the number of messages.
 
-For loggers with fixes queues or thread local storage, they try to be configured
-to a size of 8MB, but unfortunately on most loggers the queue sizes are not
-configurable, at least not in an obvious way. PR's are welcome. If some logger
-shows faults you can increase the memory amount passed as a recommendation to
-the loggers to use by using the LOGGER_MEMORY_KB cmake variable.
+* The latency tests measure each thread entry with the wall clock and calculate
+  the 99.9% and 50% percentiles. On my machine these tests show a lot of
+  variation between runs.
 
-> cmake .. -DLOGGER_MEMORY_KB=1024
+* For loggers with fixed queues or thread local storage a recommendation of
+  memory usage is passed (8MB). If you see one library reporting faults it's
+  because the queue is too small for the requested load. You can change the
+  queue size recommendation at configure time:
 
-Implementation notes
-====================
+> cmake .. -DLOGGER_MEMORY_KB=16384
+
+Tested libraries
+================
+
+mini-async-log-c
+----------------
+
+A C11 low-latency wait-free producer (when using Thread Local Storage)
+asynchronous data logger with type-safe strings.
+
+https://github.com/RafaGago/mini-async-log-c
+
+> cmake .. -DMALC=on
+
+Requires: C11/C++, meson + ninja
+
+Adds four variants to the tests:
+
+* malc-tls: using thread local storage only.
+* malc-fixed: using a bounded buffer for memory allocation.
+* malc-fixed-cpu: using as many bounded buffers as CPUs for memory allocation.
+* malc-heap: using the heap for memory allocation.
+
+No hybrid variations are tested. The library supports them.
+
+mini-async-log
+--------------
+
+A performant asynchronous data logger with acceptable feature-bloat (C++).
+
+https://github.com/RafaGago/mini-async-log-c
+
+> cmake .. -DMAL=on
+
+Requires: partial C++11, cmake
+
+Adds two variants to the tests:
+
+* mal-fixed: using a bounded buffer for memory allocation.
+* mal-heap: using the heap for memory allocation.
+
+No hybrid variations are tested. The library supports them.
+
+spdlog
+------
+
+Very fast, header-only/compiled, C++ logging library.
+
+https://github.com/gabime/spdlog
+
+> cmake .. -DSPDLOG=on
+
+Requires: C++11, header only.
+
+Adds two variants to the tests:
+
+* spdlog-async: spdlog in asynchronous mode.
+* spdlog-sync: spdlog in synchronous mode.
+
+Google log (glog)
+-----------------
+
+C++ implementation of the Google logging module.
+
+https://github.com/google/glog.git
+
+> cmake .. -DGLOG=on
+
+Requires: C++, make
+
+NanoLog (Standford)
+-------------------
+
+Nanolog is an extremely performant nanosecond scale logging system for C++ that
+exposes a simple printf-like API.
+
+https://github.com/PlatformLab/NanoLog
+
+> cmake .. -DNANOLOG2=on
+
+Requires: C++17, make
+
+g3log
+-----
+
+Asynchronous logger with Dynamic Sinks
+
+https://github.com/KjellKod/g3log
+
+> cmake .. -DG3LOG=on
+
+Requires: C++14, cmake
+
+llcpp
+-----
+
+Literal Logging for C++
+
+https://github.com/blapid/llcpp
+
+> cmake .. -DLLCP=on
+
+Requires: C++17, header only.
+
+Nanolog (Iyengar111)
+--------------------
+
+Low Latency C++11 Logging Library.
+
+NOTE: this is not Standford's University NanoLog, but a logger with the same
+name that already existed.
+
+https://github.com/Iyengar111/NanoLog
+
+> cmake .. -DNANOLOG=on
+
+Requires: C++11, header only.
+
+Compilation
+===========
+
+CMake is used only because of the convenience of "ExternalProject_Add" for this
+use case. Unfortunately CMake is much more practical than meson for this as of
+today.
+
+This is the project I use when measuring my own logger. Note that enablement of
+some loggers requires to turn on CMake options (see CMakeLists.txt), e.g.:
+
+> cmake .. -DNANOLOG=on -DSPDLOG=on -GLOG=on -DG3LOG=on
+
+mini-async-log* loggers can be turned off too:
+
+> cmake .. -DMALC=off -DMAL=off
+
+Execution
+=========
+
+> logger-bench <iterations> <messages/iteration> [loggers]...
+
+Notes
+=====
 
 As no comparison is fair, this random list tries to maintain a non biased
 summary of logger traits that one has to consider when looking at the results.
@@ -58,14 +178,14 @@ summary of logger traits that one has to consider when looking at the results.
 malc
 ----
 
-* Timestamping at the consumer side.
+* Timestamping at the consumer side (can be configured not to).
+
+* The format string has to _always_ be a literal.
 
 * Timestamps from boot time. Real calendar time has to be parsed from the file
-  names (they contain the calendar and machine boot counter). If a conversion
-  to calendar time is desired the log lines must be processed by an external
-  script.
-
-* The format string has _always_ to be a literal.
+  names (they contain the calendar time (from epoch) and the machine boot time
+  at file  creation time). If a conversion to calendar time is desired the log
+  lines must be processed by an external script.
 
 * Configurable queue size. Shows faults on high message loads when not using
   the heap variant.
@@ -73,62 +193,48 @@ malc
 mal
 ---
 
-* Timestamping at the consumer side.
+* Timestamping at the consumer side (can be configured not to).
+
+* The format string has to _always_ be a literal.
 
 * Timestamps from boot time. Real calendar time has to be parsed from the file
-  names (they contain the calendar and machine boot counter). If a conversion
-  to calendar time is desired, the log lines must be processed by an external
-  script.
-
-* The format string has to be a literal _always_.
+  names (they contain the calendar time (from epoch) and the machine boot time
+  at file  creation time). If a conversion to calendar time is desired the log
+  lines must be processed by an external script.
 
 * Configurable queue size. Shows faults on high message loads when not using
   the heap variant.
 
-Nanolog
--------
-
-NOTICE: this project is not Standford's University Nanolog, but another
-reasonably fast logger with the same name that was available before:
-
-https://github.com/Iyengar111/NanoLog.git
-
-Remarks:
-
-* Buffer sizes of 8MB are not configurable, so if a comparison has to be kept
-  fair all the other loggers have to use 8MB buffers. Arbitrary memory usage.
-
-* Logs without time zone (UTC).
-
 spdlog
 ------
 
-* No way to configure internal queue size (?). Arbitrary memory usage.
+* No way to configure internal queue size(?). Arbitrary memory usage.
 
-Glog
+glog
 ----
 
 * No remarks. I know almost nothing about the implementation.
+
+Nanolog (Standford)
+-------------------
+
+* No way to configure internal queue size (?). Arbitrary memory usage.
+
+* Binary-only logger. Not human-readable logs. A tool to convert the logs is
+  provided.
+
+* It has no explicit initialization/deinitialization, so it must launch a
+  singleton thread that may affect the other logger's depending on what it does.
 
 G3log
 -----
 
 * No remarks. I know almost nothing about the implementation.
 
-Nanolog (Standford's university NanoLog)
-----------------------------------------
+Nanolog (Iyengar111)
+--------------------
 
-This is the most famous NanoLog:
+* Buffer sizes of 8MB are not configurable, so if a comparison has to be kept
+  fair all the other loggers have to use 8MB buffers. Arbitrary memory usage.
 
-https://github.com/PlatformLab/NanoLog
-
-It is internally refered as nanolog2 in every file and CMake config switch.
-
-Remarks:
-
-* No way to configure internal queue size (?). Arbitrary memory usage.
-
-* Binary-only logger. Not human-readable logs.
-
-* It has no explicit initialization/deinitialization, so it must launch a
-  singleton thread that may affect the other logger's depending on what it does.
+* Logs without time zone (UTC).
