@@ -14,6 +14,7 @@ option(SPDLOG "spdlog enabled" off)
 option(GLOG "Google log enabled" off)
 option(G3LOG "G3 log enabled" off)
 option(LLCPP "LLCP enabled" off)
+option(NANOLOG2 "NanoLog(2) enabled" off)
 
 project(logger_bench VERSION ${VERSION_FULL})
 set (CMAKE_CXX_STANDARD 11)
@@ -228,6 +229,38 @@ if (LLCPP)
         PROPERTY COMPILE_FLAGS -std=gnu++17
         )
 endif (LLCPP)
+
+#-- nanolog2--------------------------------------------------------------------
+
+if (NANOLOG2)
+    set (NANOLOG2_REPO ${CMAKE_BINARY_DIR}/nanolog2-git)
+
+    ExternalProject_Add(
+        nanolog2_artifacts
+        GIT_REPOSITORY    https://github.com/PlatformLab/NanoLog.git
+        GIT_TAG           dfdd4639b5731d69207dfd72a020e39972a8c720
+        SOURCE_DIR        ${NANOLOG2_REPO}
+        UPDATE_COMMAND    ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND     $(MAKE) -j4 -C ${NANOLOG2_REPO}/runtime
+        INSTALL_COMMAND   ""
+        )
+    add_library (nanolog2 STATIC IMPORTED)
+    set_property(
+        TARGET                     nanolog2
+        PROPERTY IMPORTED_LOCATION ${NANOLOG2_REPO}/runtime/libNanoLog.a
+        )
+    add_dependencies (nanolog2 nanolog2_artifacts)
+
+    target_compile_definitions (logger-bench PRIVATE HAS_NANOLOG2=1)
+    target_include_directories (logger-bench PRIVATE ${NANOLOG2_REPO}/runtime)
+    target_sources (logger-bench PRIVATE ${SOURCES}/nanolog2.cpp)
+    set_property(
+        SOURCE ${SOURCES}/nanolog2.cpp APPEND
+        PROPERTY COMPILE_FLAGS -std=gnu++17
+        )
+    target_link_libraries (logger-bench nanolog2 rt)
+endif (NANOLOG2)
 
 #-- System libraries -----------------------------------------------------------
 

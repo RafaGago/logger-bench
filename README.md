@@ -30,7 +30,8 @@ Metodology
 ==========
 
 All: Tests are run with multiple threads. Each thread has a fixed CPU (affinity
-is set).
+is set). This benchmark, meant for asynchronous loggers, only measures the
+performance at the call site.
 
 Througput: The time spent on each thread is measured. Then all the times are
 added and divided by the number of threads.
@@ -39,6 +40,12 @@ Latency: Every log entry is measured with the wall clock. Every sample is saved
 to a contiguous array. An initial clock resolution test is done to see the
 minimum delay to take the timestamps. This value is subtracted from each
 sample.
+
+For loggers with fixes queues or thread local storage, they try to be configured
+to a size of 8MB, but unfortunately on most loggers the queue sizes are not
+configurable, at least not in an obvious way. PR's are welcome. If some logger
+shows faults try to edit the queue size on main.cpp:main, the variable is called
+mem.
 
 Implementation notes
 ====================
@@ -58,6 +65,9 @@ malc
 
 * The format string has _always_ to be a literal.
 
+* Configurable queue size. Shows faults on high message loads when not using
+  the heap variant.
+
 mal
 ---
 
@@ -65,13 +75,23 @@ mal
 
 * Timestamps from boot time. Real calendar time has to be parsed from the file
   names (they contain the calendar and machine boot counter). If a conversion
-  to calendar time is desired the log lines must be processed by an external
+  to calendar time is desired, the log lines must be processed by an external
   script.
 
 * The format string has to be a literal _always_.
 
+* Configurable queue size. Shows faults on high message loads when not using
+  the heap variant.
+
 Nanolog
 -------
+
+NOTICE: this project is not Standford's University Nanolog, but another
+reasonably fast logger with the same name that was available before:
+
+https://github.com/Iyengar111/NanoLog.git
+
+Remarks:
 
 * Buffer sizes of 8MB are not configurable, so if a comparison has to be kept
   fair all the other loggers have to use 8MB buffers. Arbitrary memory usage.
@@ -86,11 +106,27 @@ spdlog
 Glog
 ----
 
-* This logger is not asynchronous if I remember correctly. If it is the it has
-  to have a worker thread, which isn't shut down when running the tests for the
-  other loggers (could possibly spin instead of block).
+* No remarks. I know almost nothing about the implementation.
 
 G3log
 -----
 
 * No remarks. I know almost nothing about the implementation.
+
+Nanolog (Standford's university NanoLog)
+----------------------------------------
+
+This is the most famous NanoLog:
+
+https://github.com/PlatformLab/NanoLog
+
+It is internally refered as nanolog2 in every file and CMake config switch.
+
+Remarks:
+
+* No way to configure internal queue size (?). Arbitrary memory usage.
+
+* Binary-only logger. Not human-readable logs.
+
+* It has no explicit initialization/deinitialization, so it must launch a
+  singleton thread that may affect the other logger's depending on what it does.

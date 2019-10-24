@@ -28,6 +28,10 @@
 #include <g3log.hpp>
 #endif
 
+#ifdef HAS_NANOLOG2
+#include <nanolog2.hpp>
+#endif
+
 typedef std::vector<std::unique_ptr<logger>> logvector;
 /*----------------------------------------------------------------------------*/
 static logvector init_logvector()
@@ -55,6 +59,9 @@ static logvector init_logvector()
 #endif
 #ifdef HAS_G3LOG
     ret.push_back (std::unique_ptr<logger> (new g3log()));
+#endif
+#ifdef HAS_NANOLOG2
+    ret.push_back (std::unique_ptr<logger> (new nanolog2()));
 #endif
     return std::move (ret);
 }
