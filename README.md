@@ -170,17 +170,6 @@ https://github.com/KjellKod/g3log
 
 Requires: C++14, cmake
 
-llcpp
------
-
-Literal Logging for C++
-
-https://github.com/blapid/llcpp
-
-> cmake .. -DLLCP=on
-
-Requires: C++17, header only.
-
 Nanolog (Iyengar111)
 --------------------
 

@@ -13,7 +13,6 @@ option(NANOLOG "NanoLog enabled" off)
 option(SPDLOG "spdlog enabled" off)
 option(GLOG "Google log enabled" off)
 option(G3LOG "G3 log enabled" off)
-option(LLCPP "LLCP enabled" off)
 option(NANOLOG2 "NanoLog(2) enabled" off)
 
 project(logger_bench VERSION ${VERSION_FULL})
@@ -245,31 +244,6 @@ if (G3LOG)
         PROPERTY COMPILE_FLAGS -std=gnu++17
         )
 endif (G3LOG)
-
-#-- llcpp ----------------------------------------------------------------------
-
-if (LLCPP)
-    set (LLCPP_REPO ${CMAKE_BINARY_DIR}/llcpp-git)
-
-    ExternalProject_Add(
-        llcpp_clone
-        GIT_REPOSITORY    https://github.com/blapid/llcpp.git
-        GIT_TAG           b6b079bb1f646188964d96fa81e5a9bf472f8137
-        SOURCE_DIR        ${LLCPP_REPO}
-        UPDATE_COMMAND    ""
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND     ""
-        INSTALL_COMMAND   ""
-        )
-    add_dependencies (logger-bench llcpp_clone)
-    target_compile_definitions (logger-bench PRIVATE HAS_LLCPP=1)
-    target_include_directories (logger-bench PRIVATE ${LLCPP_REPO}/include)
-    target_sources (logger-bench PRIVATE ${SOURCES}/llcpp.cpp)
-    set_property(
-        SOURCE ${SOURCES}/llcpp.cpp APPEND
-        PROPERTY COMPILE_FLAGS -std=gnu++17
-        )
-endif (LLCPP)
 
 #-- nanolog---------------------------------------------------------------------
 
