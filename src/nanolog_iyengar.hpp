@@ -8,11 +8,11 @@ public:
     virtual ~nanolog_iyengar() {};
     virtual char const* get_name() const;
     virtual char const* get_description() const;
-    virtual bool create (int fixed_queues_bytes);
+    virtual bool create (std::size_t fixed_queues_bytes);
     virtual void destroy();
     virtual bool terminate();
     template <class T>
-    int run_logging (T& iterable);
+    std::size_t run_logging (T& iterable);
 };
 /*----------------------------------------------------------------------------*/
 #endif

@@ -9,7 +9,7 @@ glog::glog()
     m_init = false;
 }
 /*----------------------------------------------------------------------------*/
-bool glog::create (int fixed_queues_bytes)
+bool glog::create (std::size_t fixed_queues_bytes)
 {
     if (m_init) {
         return true;
@@ -40,9 +40,9 @@ bool glog::terminate()
 void glog::destroy() {}
 /*----------------------------------------------------------------------------*/
 template <class T>
-int glog::run_logging (T& iterable)
+std::size_t glog::run_logging (T& iterable)
 {
-    int success = 0;
+    std::size_t success = 0;
     int i = 0;
     for (auto _ : iterable) {
         LOG (INFO) << STRING_TO_LOG << ++i;

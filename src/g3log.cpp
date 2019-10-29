@@ -7,7 +7,7 @@
 /*----------------------------------------------------------------------------*/
 g3log::~g3log() {}
 /*----------------------------------------------------------------------------*/
-bool g3log::create (int fixed_queues_bytes)
+bool g3log::create (std::size_t fixed_queues_bytes)
 {
     m_worker = g3::LogWorker::createLogWorker();
     m_sink   = m_worker->addDefaultLogger ("g3", "./");
@@ -25,9 +25,9 @@ bool g3log::terminate()
 void g3log::destroy() {}
 /*----------------------------------------------------------------------------*/
 template <class T>
-int g3log::run_logging (T& iterable)
+std::size_t g3log::run_logging (T& iterable)
 {
-    int success = 0;
+    std::size_t success = 0;
     int i = 0;
     for (auto _ : iterable) {
         LOG (INFO) << STRING_TO_LOG << ++i;

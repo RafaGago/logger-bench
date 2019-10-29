@@ -19,9 +19,9 @@ void spdlog_base::destroy()
 }
 /*----------------------------------------------------------------------------*/
 template <class T>
-int spdlog_base::run_logging (T& iterable)
+std::size_t spdlog_base::run_logging (T& iterable)
 {
-    int success = 0;
+    std::size_t success = 0;
     int i = 0;
     for (auto _ : iterable) {
         m_log->info (STRING_TO_LOG, i);
@@ -31,7 +31,7 @@ int spdlog_base::run_logging (T& iterable)
 }
 INSTANTIATE_RUN_LOGGING_TEMPLATES (spdlog_base)
 /*----------------------------------------------------------------------------*/
-bool spdlog_sync::create (int fixed_queues_bytes)
+bool spdlog_sync::create (std::size_t fixed_queues_bytes)
 {
     m_log = spdlog::rotating_logger_mt ("spdlog", "./spdl" , 1024 * 1024, 1000);
     return (bool) m_log;
@@ -47,7 +47,7 @@ char const* spdlog_sync::get_description() const
     return "spdlog synchronous mode";
 }
 /*----------------------------------------------------------------------------*/
-bool spdlog_async::create (int fixed_queues_bytes)
+bool spdlog_async::create (std::size_t fixed_queues_bytes)
 {
     m_log = spdlog::rotating_logger_mt<spdlog::async_factory>(
         "spdlog", "./spdl" , 1024 * 1024, 1000

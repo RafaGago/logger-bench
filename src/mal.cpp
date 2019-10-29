@@ -15,7 +15,7 @@ mal_base::~mal_base()
     destroy();
 }
 /*----------------------------------------------------------------------------*/
-bool mal_base::create (int fixed_queues_bytes)
+bool mal_base::create (std::size_t fixed_queues_bytes)
 {
     using namespace mal;
     m_log = new mal::frontend();
@@ -51,9 +51,9 @@ void mal_base::destroy()
 }
 /*----------------------------------------------------------------------------*/
 template <class T>
-int mal_base::run_logging (T& iterable)
+std::size_t mal_base::run_logging (T& iterable)
 {
-    int success = 0;
+    std::size_t success = 0;
     int i = 0;
     for (auto _ : iterable) {
         bool s = log_error_i (*m_log, STRING_TO_LOG " {}", ++i);
@@ -73,7 +73,7 @@ char const* mal_heap::get_description() const
     return "mal using the heap only";
 }
 /*----------------------------------------------------------------------------*/
-void mal_heap::set_cfg (mal::cfg& cfg, int fixed_queues_bytes)
+void mal_heap::set_cfg (mal::cfg& cfg, std::size_t fixed_queues_bytes)
 {
     cfg.queue.can_use_heap_q = true;
 }
@@ -88,7 +88,7 @@ char const* mal_fixed::get_description() const
     return "mal using the fixed size memory pool";
 }
 /*----------------------------------------------------------------------------*/
-void mal_fixed::set_cfg (mal::cfg& cfg, int fixed_queues_bytes)
+void mal_fixed::set_cfg (mal::cfg& cfg, std::size_t fixed_queues_bytes)
 {
     cfg.queue.bounded_q_block_size = fixed_queues_bytes;
 }

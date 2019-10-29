@@ -89,13 +89,15 @@ static bool is_help (std::string str)
         || str.compare ("-h") == 0;
 }
 /*----------------------------------------------------------------------------*/
-static bool ustrtoint (int& v, char const* str, char const* errmsg_prefix)
+static bool strtosize_t(
+    std::size_t& v, char const* str, char const* errmsg_prefix
+    )
 {
     unsigned long l;
     try {
         l = std::stoull (str);
-        v = (int) l;
-        if (v != l || v < 0) {
+        v = (std::size_t) l;
+        if (v != l) {
             std::cerr
                 << errmsg_prefix
                 << ", value out of range: \""
@@ -114,7 +116,7 @@ static bool ustrtoint (int& v, char const* str, char const* errmsg_prefix)
 #define LITLEN(x) (sizeof x - 1)
 #define ENDSWITHLIT(str, lit) (str.rfind(lit) == str.size() - LITLEN(lit))
 /*----------------------------------------------------------------------------*/
-static bool parse_qbytes (int& v, char const* str)
+static bool parse_qbytes (std::size_t& v, char const* str)
 {
     std::string s(str);
     std::transform (s.begin(), s.end(), s.begin(), ::tolower);
@@ -135,12 +137,12 @@ static bool parse_qbytes (int& v, char const* str)
     static char const errmsg[] =
         "invalid recommended logger memory usage";
 
-    if (!ustrtoint(v, s.c_str(), errmsg)) {
+    if (!strtosize_t(v, s.c_str(), errmsg)) {
         return false;
     }
     unsigned long long m = ((unsigned long long) v) * factor;
-    v = (int) m;
-    if (v < 0 || v != m) {
+    v = (std::size_t) m;
+    if (v != m) {
         std::cerr
             << errmsg
             << ", value out of range: \""
@@ -152,7 +154,11 @@ static bool parse_qbytes (int& v, char const* str)
 }
 /*----------------------------------------------------------------------------*/
 static int parse_args(
-    logvector& loggers, int& iterations, int msgs, int argc, char ** argv
+    logvector&   loggers,
+    std::size_t& iterations,
+    std::size_t  msgs,
+    int          argc,
+    char**       argv
     )
 {
     using namespace std;
@@ -168,7 +174,7 @@ static int parse_args(
         print_own_usage (loggers);
         return 1;
     }
-    if (!ustrtoint (iterations, argv[currarg], "invalid iteration count")) {
+    if (!strtosize_t (iterations, argv[currarg], "invalid iteration count")) {
         return 1;
     }
     if (msgs < max_threads) {
@@ -215,9 +221,9 @@ static int parse_args(
     return 0;
 }
 /*----------------------------------------------------------------------------*/
-int own_subcommand (int argc, char** argv, int qsize, int messages)
+int own_subcommand (int argc, char** argv, int qsize, std::size_t messages)
 {
-    int iterations = 0;
+    std::size_t iterations = 0;
     logvector loggers = init_logvector();
     int r = parse_args (loggers, iterations, messages, argc, argv);
     if (r != 0) {
@@ -227,7 +233,7 @@ int own_subcommand (int argc, char** argv, int qsize, int messages)
     return run_tests (results, messages, iterations, qsize, loggers);
 }
 /*----------------------------------------------------------------------------*/
-int gbench_subcommand (int argc, char** argv, int qsize, int messages)
+int gbench_subcommand (int argc, char** argv, int qsize, std::size_t messages)
 {
     if (messages != 0 && messages < max_threads) {
         std::cerr
@@ -316,12 +322,12 @@ int main (int argc, char* argv[])
             return 0;
         }
     }
-    int qbytes;
-    if (!parse_qbytes(qbytes, argv[1])) {
+    std::size_t qbytes;
+    if (!parse_qbytes (qbytes, argv[1])) {
         return 1;
     }
-    int msgs;
-    if (!ustrtoint (msgs, argv[2], "invalid message count")) {
+    std::size_t msgs;
+    if (!strtosize_t (msgs, argv[2], "invalid message count")) {
         return 1;
     }
     std::string ltype (argv[3]);

@@ -8,8 +8,8 @@
 /*----------------------------------------------------------------------------*/
 struct test_result {
     int         thread_count;
-    uint64_t    throughput_faults;
-    uint64_t    latency_faults;
+    std::size_t throughput_faults;
+    std::size_t latency_faults;
     uint64_t    producer_ns;
     uint64_t    total_ns;
     uint32_t    latency_ns_50;

@@ -6,7 +6,7 @@
 #include <nanolog_iyengar.hpp>
 #include <benchmark_iterables.hpp>
 /*----------------------------------------------------------------------------*/
-bool nanolog_iyengar::create (int fixed_queues_bytes)
+bool nanolog_iyengar::create (std::size_t fixed_queues_bytes)
 {
     nanolog::initialize (nanolog::GuaranteedLogger(), "./", "nanolog", 1);
     return true;
@@ -23,9 +23,9 @@ bool nanolog_iyengar::terminate()
 void nanolog_iyengar::destroy() {}
 /*----------------------------------------------------------------------------*/
 template <class T>
-int nanolog_iyengar::run_logging (T& iterable)
+std::size_t nanolog_iyengar::run_logging (T& iterable)
 {
-    int success = 0;
+    std::size_t success = 0;
     int i = 0;
     for (auto _ : iterable) {
         LOG_INFO << STRING_TO_LOG << ++i;

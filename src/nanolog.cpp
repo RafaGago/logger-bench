@@ -8,7 +8,7 @@
 static const char logfile[] = "./logger-bench-nanolog";
 
 /*----------------------------------------------------------------------------*/
-bool nanolog::create (int fixed_queues_bytes)
+bool nanolog::create (std::size_t fixed_queues_bytes)
 {
     NanoLog::setLogFile (logfile);
     NanoLog::setLogLevel (NanoLog::DEBUG);
@@ -24,7 +24,7 @@ bool nanolog::terminate()
 /*----------------------------------------------------------------------------*/
 void nanolog::destroy() {}
 /*----------------------------------------------------------------------------*/
-bool nanolog::prepare_thread(int fixed_queues_bytes)
+bool nanolog::prepare_thread(std::size_t fixed_queues_bytes)
 {
     /*NOTICE, no way to pass memory size restructions*/
     NanoLog::preallocate();
@@ -32,9 +32,9 @@ bool nanolog::prepare_thread(int fixed_queues_bytes)
 }
 /*----------------------------------------------------------------------------*/
 template <class T>
-int nanolog::run_logging (T& iterable)
+std::size_t nanolog::run_logging (T& iterable)
 {
-    int success = 0;
+    std::size_t success = 0;
     int i = 0;
     for (auto _ : iterable) {
         NANO_LOG (NanoLog::NOTICE, "%s %i", STRING_TO_LOG, ++i);

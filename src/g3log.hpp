@@ -16,11 +16,11 @@ public:
     virtual ~g3log();
     virtual char const* get_name() const;
     virtual char const* get_description() const;
-    virtual bool create (int fixed_queues_bytes);
+    virtual bool create (std::size_t fixed_queues_bytes);
     virtual void destroy();
     virtual bool terminate();
     template <class T>
-    int run_logging (T& iterable);
+    std::size_t run_logging (T& iterable);
 private:
     std::shared_ptr<g3::LogWorker>                m_worker;
     std::shared_ptr<g3::SinkHandle<g3::FileSink>> m_sink;

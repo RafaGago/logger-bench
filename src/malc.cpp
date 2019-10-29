@@ -20,7 +20,7 @@ malc_base::~malc_base()
     destroy();
 }
 /*----------------------------------------------------------------------------*/
-bool malc_base::create (int fixed_queues_bytes)
+bool malc_base::create (std::size_t fixed_queues_bytes)
 {
     bl_err err;
     m_log = (malc*) bl_alloc (&m_alloc, malc_get_size());
@@ -86,10 +86,10 @@ void malc_base::destroy()
 }
 /*----------------------------------------------------------------------------*/
 template <class T>
-int malc_base::run_logging (T& iterable)
+std::size_t malc_base::run_logging (T& iterable)
 {
     bl_err err;
-    int success = 0;
+    std::size_t success = 0;
     int i = 0;
     for (auto _ : iterable) {
         log_error (err, STRING_TO_LOG " {}", ++i);
@@ -109,13 +109,13 @@ char const* malc_tls::get_description() const
     return "mal C using thread local storage only";
 }
 /*----------------------------------------------------------------------------*/
-bool malc_tls::prepare_thread(int fixed_queues_bytes)
+bool malc_tls::prepare_thread(std::size_t fixed_queues_bytes)
 {
     bl_err err = malc_producer_thread_local_init (m_log, fixed_queues_bytes);
     return  err.bl == bl_ok;
 }
 /*----------------------------------------------------------------------------*/
-void malc_tls::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
+void malc_tls::set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes)
 {
     cfg.alloc.msg_allocator = nullptr;
 }
@@ -130,7 +130,7 @@ char const* malc_heap::get_description() const
     return "mal C using the default heap only";
 }
 /*----------------------------------------------------------------------------*/
-void malc_heap::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
+void malc_heap::set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes)
 {}
 /*----------------------------------------------------------------------------*/
 char const* malc_fixed::get_name() const
@@ -143,7 +143,7 @@ char const* malc_fixed::get_description() const
     return "mal C using the fixed size memory pool";
 }
 /*----------------------------------------------------------------------------*/
-void malc_fixed::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
+void malc_fixed::set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes)
 {
     cfg.alloc.msg_allocator             = nullptr;
     cfg.alloc.fixed_allocator_bytes     = fixed_queues_bytes;
@@ -161,7 +161,7 @@ char const* malc_fixed_cpu::get_description() const
     return "mal C using one fixed size memory pool for each CPU";
 }
 /*----------------------------------------------------------------------------*/
-void malc_fixed_cpu::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
+void malc_fixed_cpu::set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes)
 {
     cfg.alloc.msg_allocator         = nullptr;
     cfg.alloc.fixed_allocator_bytes = fixed_queues_bytes / bl_get_cpu_count();

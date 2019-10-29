@@ -2,7 +2,6 @@
 #define __LATENCY_MEASUREMENTS__
 
 #include <vector>
-#include <cstdint>
 #include <atomic>
 #include <cassert>
 #include <algorithm>
@@ -33,12 +32,12 @@ public:
         m_success += (is_success == true);
     }
 
-    void add_successes (uint32_t count)
+    void add_successes (std::size_t count)
     {
         m_success += count;
     }
 
-    bool prepare (int elements, uint32_t min_measurable_ns)
+    bool prepare (std::size_t elements, uint32_t min_measurable_ns)
     {
         if (elements < 0) {
             return false;
@@ -86,11 +85,11 @@ public:
     {
         return m_max;
     }
-    uint64_t get_faults() const
+    std::size_t get_faults() const
     {
         return m_expected - m_success;
     }
-    int get_expected() const
+    std::size_t get_expected() const
     {
         return m_expected;
     }
@@ -112,8 +111,8 @@ private:
     uint32_t              m_min;
     uint32_t              m_max;
     uint32_t              m_min_measurable_ns;
-    int                   m_expected;
-    uint64_t              m_success;
+    std::size_t           m_expected;
+    std::size_t           m_success;
 };
 /*----------------------------------------------------------------------------*/
 class latency_iterator
@@ -164,8 +163,8 @@ public:
 
 private:
     latency_measurements* m_latency;
-    uint64_t              m_remaining;
-    uint64_t              m_expected;
+    std::size_t           m_remaining;
+    std::size_t           m_expected;
     decltype(ns_now())    m_prev_point;
 };
 /*----------------------------------------------------------------------------*/

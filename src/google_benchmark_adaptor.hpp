@@ -15,7 +15,9 @@ enum {
 };
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
-auto run_google_benchmark = [](benchmark::State& state, logger* log, int qsize)
+auto run_google_benchmark = [](
+    benchmark::State& state, logger* log, std::size_t qsize
+    )
 {
     static std::atomic<unsigned> runners (0);
     static std::atomic<unsigned> initstatus (unitialized);
