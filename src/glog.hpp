@@ -1,10 +1,10 @@
 #ifndef __BENCHMARK_GLOG__
 #define __BENCHMARK_GLOG__
 
-#include <logger.hpp>
+#include <logger_impl_helpers.hpp>
 
 /*----------------------------------------------------------------------------*/
-class glog : public logger {
+class glog : public logger_adaptor<glog> {
 public:
     glog();
     virtual ~glog() {};
@@ -13,8 +13,8 @@ public:
     virtual bool create (int fixed_queues_bytes);
     virtual void destroy();
     virtual bool terminate();
-    virtual int enqueue_msgs (int count);
-    virtual void fill_latencies (latency_measurements& meas, int count);
+    template <class T>
+    int run_logging (T& iterable);
 private:
     bool m_init;
 };

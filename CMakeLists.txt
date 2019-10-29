@@ -55,14 +55,42 @@ elseif(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
     set (MESON_BUILDTYPE debugoptimized)
 else()
     set (MESON_BUILDTYPE release)
+    set (CMAKE_BUILD_TYPE Release)
 endif()
+
+#-- Google benchmark -----------------------------------------------------------
+
+ExternalProject_Add(
+    gbenchmark_artifacts
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG        v1.5.0
+    UPDATE_COMMAND ""
+    INSTALL_DIR    ${LOGGER_INSTALL}
+    CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBENCHMARK_ENABLE_TESTING=off -DBENCHMARK_ENABLE_GTEST_TESTS=off -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        )
+add_library (gbenchmark STATIC IMPORTED)
+set_property(
+    TARGET                     gbenchmark
+    PROPERTY IMPORTED_LOCATION ${LOGGER_INSTALL}/lib/libbenchmark.a
+    )
+add_dependencies (gbenchmark gbenchmark_artifacts)
+
+add_library (gbenchmark_main STATIC IMPORTED)
+set_property(
+    TARGET                     gbenchmark_main
+    PROPERTY IMPORTED_LOCATION ${LOGGER_INSTALL}/lib/libbenchmark_main.a
+    )
+add_dependencies (gbenchmark_main gbenchmark_artifacts)
+
+target_link_libraries (logger-bench gbenchmark gbenchmark_main)
+
 #-- malc -----------------------------------------------------------------------
 
 if (MALC)
     ExternalProject_Add(
         malc_artifacts
         GIT_REPOSITORY    https://github.com/RafaGago/mini-async-log-c.git
-        GIT_TAG           a77d49632f7c9614b9271ba3b9014905f65bd5da
+        GIT_TAG           572d34a78c8b976acf34842c7e1e0dcb2d124c9d
         CONFIGURE_COMMAND
             meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dcompressed_builtins=false -Dcompressed_ptrs=false -Dbare=true
         UPDATE_COMMAND    ""
@@ -91,7 +119,14 @@ if (MALC)
         )
     add_dependencies (bl_nonblock malc_artifacts)
 
-    target_link_libraries (logger-bench malc bl_nonblock bl_base)
+    add_library (bl_t_extras STATIC IMPORTED)
+    set_property(
+        TARGET                     bl_t_extras
+        PROPERTY IMPORTED_LOCATION ${LOGGER_INSTALL}/lib/${ARCH_TRIPLET}/libbl-time-extras.a
+        )
+    add_dependencies (bl_t_extras malc_artifacts)
+
+    target_link_libraries (logger-bench malc bl_nonblock bl_base bl_t_extras)
     target_compile_definitions (logger-bench PRIVATE HAS_MALC=1)
     target_sources (logger-bench PRIVATE ${SOURCES}/malc.cpp)
 endif (MALC)
@@ -105,7 +140,7 @@ if (MAL)
         GIT_TAG        dec11bca53482f44a9d52388dad1c5afafd4c146
         UPDATE_COMMAND ""
         INSTALL_DIR    ${LOGGER_INSTALL}
-        CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBUILD_SHARED_LIBS=off
+        CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBUILD_SHARED_LIBS=off -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         )
     add_library (mal STATIC IMPORTED)
     set_property(
@@ -170,7 +205,7 @@ if (GLOG)
         GIT_TAG        4cc89c9e2b452db579397887c37f302fb28f6ca1
         UPDATE_COMMAND ""
         INSTALL_DIR    ${LOGGER_INSTALL}
-        CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBUILD_SHARED_LIBS=off
+        CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBUILD_SHARED_LIBS=off -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         )
     add_library (glog STATIC IMPORTED)
     set_property(
@@ -193,7 +228,7 @@ if (G3LOG)
         GIT_TAG        f1491791785101d4ae948f8ecee7e9cc3e6b0be8
         UPDATE_COMMAND ""
         INSTALL_DIR    ${LOGGER_INSTALL}
-        CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DCPACK_INSTALL_PREFIX=${LOGGER_INSTALL} -DG3_SHARED_LIB=off
+        CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DCPACK_INSTALL_PREFIX=${LOGGER_INSTALL} -DG3_SHARED_LIB=off -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         )
     add_library (g3log STATIC IMPORTED)
     set_property(
@@ -248,7 +283,7 @@ if (NANOLOG)
         SOURCE_DIR        ${NANOLOG_REPO}
         UPDATE_COMMAND    ""
         CONFIGURE_COMMAND ""
-        BUILD_COMMAND     $(MAKE) -j4 -C ${NANOLOG_REPO}/runtime
+        BUILD_COMMAND     $(MAKE) -j4 -C ${NANOLOG_REPO}/runtime libNanoLog.a
         INSTALL_COMMAND   ""
         )
     add_library (nanolog STATIC IMPORTED)

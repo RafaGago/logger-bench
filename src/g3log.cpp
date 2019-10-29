@@ -1,10 +1,8 @@
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 
-#include <latency_measurements.hpp>
-#include <timestamp_ns.hpp>
-
 #include <g3log.hpp>
+#include <benchmark_iterables.hpp>
 
 /*----------------------------------------------------------------------------*/
 g3log::~g3log() {}
@@ -26,22 +24,18 @@ bool g3log::terminate()
 /*----------------------------------------------------------------------------*/
 void g3log::destroy() {}
 /*----------------------------------------------------------------------------*/
-int g3log::enqueue_msgs (int count)
+template <class T>
+int g3log::run_logging (T& iterable)
 {
-    for (int i = 0; i < count; ++i) {
-        LOG (INFO) << STRING_TO_LOG << i;
+    int success = 0;
+    int i = 0;
+    for (auto _ : iterable) {
+        LOG (INFO) << STRING_TO_LOG << ++i;
+        ++success;
     }
-    return count;
+    return success;
 }
-/*----------------------------------------------------------------------------*/
-void g3log::fill_latencies(latency_measurements& lm, int count)
-{
-    for (int i = 0; i < count; ++i) {
-        uint64_t start = ns_now();
-        LOG (INFO) << STRING_TO_LOG << i;
-        lm.add_sample (ns_now() - start, true);
-    }
-}
+INSTANTIATE_RUN_LOGGING_TEMPLATES (g3log)
 /*----------------------------------------------------------------------------*/
 char const* g3log::get_name() const
 {

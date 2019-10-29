@@ -7,7 +7,11 @@
 #include <cassert>
 #include <algorithm>
 #include <cmath>
+#include <chrono>
+#include <timestamp_ns.hpp>
+#include <nonstandard_compiler.hpp>
 
+class latency_iterator;
 /*----------------------------------------------------------------------------*/
 class latency_measurements {
 public:
@@ -15,6 +19,7 @@ public:
     {
         reset();
     }
+
     void add_sample (uint32_t ns, bool is_success)
     {
         /* as this can be inlined, avoid optimizations changing the moment when
@@ -27,6 +32,12 @@ public:
         m_max = std::max (m_max, v);
         m_success += (is_success == true);
     }
+
+    void add_successes (uint32_t count)
+    {
+        m_success += count;
+    }
+
     bool prepare (int elements, uint32_t min_measurable_ns)
     {
         if (elements < 0) {
@@ -75,10 +86,16 @@ public:
     {
         return m_max;
     }
-    uint64_t get_successes() const
+    uint64_t get_faults() const
     {
-        return m_success;
+        return m_expected - m_success;
     }
+    int get_expected() const
+    {
+        return m_expected;
+    }
+    inline forceinline latency_iterator begin();
+    inline forceinline latency_iterator end();
 private:
     void reset()
     {
@@ -99,5 +116,66 @@ private:
     uint64_t              m_success;
 };
 /*----------------------------------------------------------------------------*/
+class latency_iterator
+{
+/* wraps latency measurements in an iterator as Google Benchmark does */
+public:
+    struct dummy {};
+    typedef std::forward_iterator_tag iterator_category;
+    typedef dummy value_type;
+    typedef dummy reference;
+    typedef dummy pointer;
+    typedef std::ptrdiff_t difference_type;
 
+private:
+    friend class latency_measurements;
+    forceinline latency_iterator() {}
+
+    forceinline explicit latency_iterator (latency_measurements& lm) :
+        m_latency (&lm)
+    {
+        m_remaining = lm.get_expected();
+        m_expected  = m_remaining;
+    }
+public:
+    forceinline dummy operator*() const
+    {
+        return dummy();
+    }
+
+    forceinline latency_iterator& operator++()
+    {
+        assert (m_remaining > 0);
+        --m_remaining;
+        return *this;
+    }
+
+    forceinline bool operator!= (latency_iterator const&)
+    {
+        if (likely (m_remaining != m_expected)) {
+            m_latency->add_sample (ns_now() - m_prev_point, true);
+            m_prev_point = ns_now();
+            return m_remaining != 0;
+        }
+        /*first iteration before even entering the loop*/
+        m_prev_point = ns_now();
+        return true;
+    }
+
+private:
+    latency_measurements* m_latency;
+    uint64_t              m_remaining;
+    uint64_t              m_expected;
+    decltype(ns_now())    m_prev_point;
+};
+/*----------------------------------------------------------------------------*/
+inline forceinline latency_iterator latency_measurements::begin()
+{
+    return latency_iterator (*this);
+}
+inline forceinline latency_iterator latency_measurements::end()
+{
+    return latency_iterator();
+}
+/*----------------------------------------------------------------------------*/
 #endif /*__LATENCY_MEASUREMENTS__*/

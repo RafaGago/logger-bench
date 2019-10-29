@@ -2,7 +2,7 @@
 #define __BENCHMARK_G3LOG__
 
 #include <memory>
-#include <logger.hpp>
+#include <logger_impl_helpers.hpp>
 
 /*----------------------------------------------------------------------------*/
 namespace g3 {
@@ -11,7 +11,7 @@ namespace g3 {
     template <class T> class SinkHandle;
 }
 /*----------------------------------------------------------------------------*/
-class g3log : public logger {
+class g3log : public logger_adaptor<g3log> {
 public:
     virtual ~g3log();
     virtual char const* get_name() const;
@@ -19,8 +19,8 @@ public:
     virtual bool create (int fixed_queues_bytes);
     virtual void destroy();
     virtual bool terminate();
-    virtual int enqueue_msgs (int count);
-    virtual void fill_latencies (latency_measurements& meas, int count);
+    template <class T>
+    int run_logging (T& iterable);
 private:
     std::shared_ptr<g3::LogWorker>                m_worker;
     std::shared_ptr<g3::SinkHandle<g3::FileSink>> m_sink;

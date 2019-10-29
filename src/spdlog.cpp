@@ -3,8 +3,7 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 
 #include <spdlog.hpp>
-#include <latency_measurements.hpp>
-#include <timestamp_ns.hpp>
+#include <benchmark_iterables.hpp>
 
 /*----------------------------------------------------------------------------*/
 bool spdlog_base::terminate()
@@ -19,22 +18,18 @@ void spdlog_base::destroy()
     m_log.reset();
 }
 /*----------------------------------------------------------------------------*/
-int spdlog_base::enqueue_msgs (int count)
+template <class T>
+int spdlog_base::run_logging (T& iterable)
 {
-    for (int i = 0; i < count; ++i) {
+    int success = 0;
+    int i = 0;
+    for (auto _ : iterable) {
         m_log->info (STRING_TO_LOG, i);
+        ++success;
     }
-    return count;
+    return success;
 }
-/*----------------------------------------------------------------------------*/
-void spdlog_base::fill_latencies(latency_measurements& lm, int count)
-{
-    for (int i = 0; i < count; ++i) {
-        uint64_t start = ns_now();
-        m_log->info (STRING_TO_LOG, i);
-        lm.add_sample (ns_now() - start, true);
-    }
-}
+INSTANTIATE_RUN_LOGGING_TEMPLATES (spdlog_base)
 /*----------------------------------------------------------------------------*/
 bool spdlog_sync::create (int fixed_queues_bytes)
 {

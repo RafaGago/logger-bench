@@ -1,11 +1,10 @@
 #include <stdio.h>
 
-#include <latency_measurements.hpp>
-#include <timestamp_ns.hpp>
-
 #include <NanoLog.hpp>
 #include <NanoLog.cpp>
+
 #include <nanolog_iyengar.hpp>
+#include <benchmark_iterables.hpp>
 /*----------------------------------------------------------------------------*/
 bool nanolog_iyengar::create (int fixed_queues_bytes)
 {
@@ -23,22 +22,18 @@ bool nanolog_iyengar::terminate()
 /*----------------------------------------------------------------------------*/
 void nanolog_iyengar::destroy() {}
 /*----------------------------------------------------------------------------*/
-int nanolog_iyengar::enqueue_msgs (int count)
+template <class T>
+int nanolog_iyengar::run_logging (T& iterable)
 {
-    for (int i = 0; i < count; ++i) {
-        LOG_INFO << STRING_TO_LOG << i;
+    int success = 0;
+    int i = 0;
+    for (auto _ : iterable) {
+        LOG_INFO << STRING_TO_LOG << ++i;
+        ++success;
     }
-    return count;
+    return success;
 }
-/*----------------------------------------------------------------------------*/
-void nanolog_iyengar::fill_latencies(latency_measurements& lm, int count)
-{
-    for (int i = 0; i < count; ++i) {
-        uint64_t start = ns_now();
-        LOG_INFO << STRING_TO_LOG << i;
-        lm.add_sample (ns_now() - start, true);
-    }
-}
+INSTANTIATE_RUN_LOGGING_TEMPLATES (nanolog_iyengar)
 /*----------------------------------------------------------------------------*/
 char const* nanolog_iyengar::get_name() const
 {

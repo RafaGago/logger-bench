@@ -1,10 +1,9 @@
 #ifndef __BENCHMARK_NANOLOG_IYENGAR__
 #define __BENCHMARK_NANOLOG_IYENGAR__
 
-#include <logger.hpp>
-
+#include <logger_impl_helpers.hpp>
 /*----------------------------------------------------------------------------*/
-class nanolog_iyengar : public logger {
+class nanolog_iyengar : public logger_adaptor<nanolog_iyengar> {
 public:
     virtual ~nanolog_iyengar() {};
     virtual char const* get_name() const;
@@ -12,8 +11,8 @@ public:
     virtual bool create (int fixed_queues_bytes);
     virtual void destroy();
     virtual bool terminate();
-    virtual int enqueue_msgs (int count);
-    virtual void fill_latencies (latency_measurements& meas, int count);
+    template <class T>
+    int run_logging (T& iterable);
 };
 /*----------------------------------------------------------------------------*/
 #endif

@@ -5,8 +5,7 @@
 #include <malc/destinations/file.h>
 
 #include <malc.hpp>
-#include <latency_measurements.hpp>
-#include <timestamp_ns.hpp>
+#include <benchmark_iterables.hpp>
 
 /*----------------------------------------------------------------------------*/
 malc_base::malc_base()
@@ -57,6 +56,7 @@ bool malc_base::create (int fixed_queues_bytes)
     cfg.alloc.fixed_allocator_bytes     = 0;
     cfg.alloc.fixed_allocator_max_slots = 0;
     cfg.alloc.fixed_allocator_per_cpu   = 0;
+    cfg.producer.timestamp = true;
 
     set_cfg (cfg, fixed_queues_bytes);
     err = malc_init (m_log, &cfg);
@@ -85,26 +85,19 @@ void malc_base::destroy()
     m_log = nullptr;
 }
 /*----------------------------------------------------------------------------*/
-int malc_base::enqueue_msgs (int count)
+template <class T>
+int malc_base::run_logging (T& iterable)
 {
     bl_err err;
     int success = 0;
-    for (int i = 0; i < count; ++i) {
-        log_error (err, STRING_TO_LOG " {}", i);
+    int i = 0;
+    for (auto _ : iterable) {
+        log_error (err, STRING_TO_LOG " {}", ++i);
         success += (err.bl == bl_ok);
     }
     return success;
 }
-/*----------------------------------------------------------------------------*/
-void malc_base::fill_latencies(latency_measurements& lm, int count)
-{
-    bl_err err;
-    for (int i = 0; i < count; ++i) {
-        uint64_t start = ns_now();
-        log_error (err, STRING_TO_LOG " {}", i);
-        lm.add_sample (ns_now() - start, err.bl == bl_ok);
-    }
-}
+INSTANTIATE_RUN_LOGGING_TEMPLATES (malc_base)
 /*----------------------------------------------------------------------------*/
 char const* malc_tls::get_name() const
 {
@@ -173,6 +166,6 @@ void malc_fixed_cpu::set_cfg (struct malc_cfg& cfg, int fixed_queues_bytes)
     cfg.alloc.msg_allocator         = nullptr;
     cfg.alloc.fixed_allocator_bytes = fixed_queues_bytes / bl_get_cpu_count();
     cfg.alloc.fixed_allocator_max_slots = 2;
-    cfg.alloc.fixed_allocator_per_cpu   = 0;
+    cfg.alloc.fixed_allocator_per_cpu   = 1;
 }
 /*----------------------------------------------------------------------------*/

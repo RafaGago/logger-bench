@@ -7,12 +7,15 @@
 #include <cstring>
 #include <algorithm>
 #include <iostream>
+#include <array>
 #include <thread>
 #include <atomic>
 #include <chrono>
 
+#include <logger.hpp>
 #include <test_results.hpp>
 #include <latency_measurements.hpp>
+#include <throughput_measurements.hpp>
 #include <timestamp_ns.hpp>
 
 static int max_threads = 16;
@@ -34,7 +37,7 @@ static void set_thread_cpu (unsigned i)
 #else
 /*Note that for an implementation without thread affinity just a stub
 "set_thread_cpu" implementation will do.*/
-#error "Unsupported platform"
+#error "Implement setting a thread to a CPU for this platform"
 #endif
 /*----------------------------------------------------------------------------*/
 static const int thread_count[] = { 1, 2, 4, 8, max_threads };
@@ -42,12 +45,6 @@ static const int thread_count_idxs =
     sizeof thread_count / sizeof thread_count[0];
 /*----------------------------------------------------------------------------*/
 typedef std::vector<std::unique_ptr<logger>> logvector;
-/*----------------------------------------------------------------------------*/
-struct throughput_result {
-    int                                   faults;
-    std::chrono::system_clock::time_point start; /*what a beautiful name*/
-    std::chrono::system_clock::time_point end;
-};
 /*----------------------------------------------------------------------------*/
 static bool run_throughput(
     test_result&          tr,
@@ -62,11 +59,11 @@ static bool run_throughput(
     tr.thread_count = thread_count;
 
     unique_ptr<thread[]> threads (new thread[thread_count]);
-    unique_ptr<throughput_result[]> results(
-        new throughput_result[thread_count]
+    unique_ptr<throughput_measurements[]> results(
+        new throughput_measurements[thread_count]
         );
     atomic<int> initialized (0);
-    system_clock::time_point total_end;
+    decltype (ns_now()) total_end;
 
     auto msgs_thr = msgs / thread_count;
 
@@ -75,11 +72,13 @@ static bool run_throughput(
         return false;
     }
     if (thread_count > 1) {
-        /*set this thread to a free CPU if possible*/
+        /*set this thread to a free CPU when the number of CPUs is greater than
+        the thread count */
         set_thread_cpu (thread_count);
         for (unsigned i = 0; i < thread_count; ++i) {
-            throughput_result& thread_results = results[i];
-            threads[i] = thread ([=, &l, &initialized, &thread_results]()
+            throughput_measurements& tm = results[i];
+            tm.prepare (msgs_thr);
+            threads[i] = thread ([=, &l, &initialized, &tm]()
             {
                 set_thread_cpu (i);
                 l.prepare_thread (mem_bytes / thread_count);
@@ -87,13 +86,8 @@ static bool run_throughput(
                 while (initialized.load (memory_order_relaxed) >= 0) {
                     this_thread::yield();
                 }
-                auto start  = std::chrono::system_clock::now();
-                int successes = l.enqueue_msgs (msgs_thr);
-                auto end = std::chrono::system_clock::now();
+                l.run_logging (tm);
                 std::atomic_thread_fence (std::memory_order_relaxed);
-                thread_results.faults = msgs_thr - successes;
-                thread_results.start  = start;
-                thread_results.end    = end;
             });
         }
         while (initialized.load (memory_order_relaxed) != thread_count) {
@@ -103,39 +97,27 @@ static bool run_throughput(
         for (unsigned i = 0; i < thread_count; ++i) {
             threads[i].join();
         }
-        l.terminate();
-        total_end = std::chrono::system_clock::now();
     }
     else {
         set_thread_cpu (0);
+        results[0].prepare (msgs_thr);
         l.prepare_thread (mem_bytes);
-        results[0].start  = std::chrono::system_clock::now();
-        results[0].faults = msgs_thr - l.enqueue_msgs (msgs_thr);
-        results[0].end    = std::chrono::system_clock::now();
-        l.terminate();
-        total_end = std::chrono::system_clock::now();
+        l.run_logging (results[0]);
     }
+    l.terminate();
+    total_end = ns_now();
     l.destroy();
 
-    std::chrono::system_clock::time_point min_start = results[0].start;
-    std::chrono::system_clock::time_point max_end   = results[0].end;
+    auto min_start = results[0].get_start();
+    auto max_end   = results[0].get_end();
     tr.throughput_faults = 0;
     for (unsigned i = 0; i < thread_count; ++i) {
-        tr.throughput_faults += results[i].faults;
-        min_start = std::min (min_start, results[i].start);
-        max_end   = std::max (max_end, results[i].end);
+        tr.throughput_faults += results[i].get_faults();
+        min_start = std::min (min_start, results[i].get_start());
+        max_end   = std::max (max_end, results[i].get_end());
     }
-    uint64_t start_ns = duration_cast<nanoseconds>(
-        min_start.time_since_epoch()
-        ).count();
-    uint64_t prod_end_ns = duration_cast<nanoseconds>(
-        max_end.time_since_epoch()
-        ).count();
-    uint64_t total_end_ns = duration_cast<nanoseconds>(
-        total_end.time_since_epoch()
-        ).count();
-    tr.producer_ns = prod_end_ns - start_ns;
-    tr.total_ns    = total_end_ns - start_ns;
+    tr.producer_ns = max_end - min_start;
+    tr.total_ns    = total_end - min_start;
     return true;
 }
 /*----------------------------------------------------------------------------*/
@@ -176,7 +158,8 @@ static bool run_latency(
         return false;
     }
     if (thread_count > 1) {
-        /*set this thread to a free CPU if possible*/
+        /*set this thread to a free CPU when the number of CPUs is greater than
+        the thread count */
         set_thread_cpu (thread_count);
         for (unsigned i = 0; i < thread_count; ++i) {
             latency_measurements& lm = results[i];
@@ -189,7 +172,7 @@ static bool run_latency(
                 while (initialized.load (memory_order_relaxed) >= 0) {
                     this_thread::yield();
                 }
-                l.fill_latencies (lm, msgs_thr);
+                l.run_logging (lm);
             });
         }
         while (initialized.load (memory_order_relaxed) != thread_count) {
@@ -199,21 +182,20 @@ static bool run_latency(
         for (unsigned i = 0; i < thread_count; ++i) {
             threads[i].join();
         }
-        l.terminate();
     }
     else {
         set_thread_cpu (0);
         results[0].prepare (msgs_thr, timestamp_latency_ns);
         l.prepare_thread (mem_bytes);
-        l.fill_latencies (results[0], msgs_thr);
-        l.terminate();
+        l.run_logging (results[0]);
     }
+    l.terminate();
     l.destroy();
     for (int i = 1; i < thread_count; ++i) {
         results[0].join (results[i]);
     }
     results[0].finish();
-    tr.latency_faults = msgs - results[0].get_successes();
+    tr.latency_faults = results[0].get_faults();
     tr.latency_ns_50  = results[0].get_percentile_ns (50.);
     tr.latency_ns_75  = results[0].get_percentile_ns (75.);
     tr.latency_ns_85  = results[0].get_percentile_ns (85.);

@@ -10,8 +10,11 @@ This drove me to create this separate project.
 The codebase tries to remain trivial by sticking to the most basic C++ concepts
 only. Contributions with new loggers or test method improvements are welcome.
 
-Metodology
-==========
+This library implements its own testing and integrates a Google benchmark
+implementation too.
+
+Own implementation. Metodology
+==============================
 
 * Tests performance at the calling site. Tailored for asynchronous loggers.
 
@@ -24,12 +27,56 @@ Metodology
   the 99.9% and 50% percentiles. On my machine these tests show a lot of
   variation between runs.
 
-* For loggers with fixed queues or thread local storage a recommendation of
-  memory usage is passed (8MB). If you see one library reporting faults it's
-  because the queue is too small for the requested load. You can change the
-  queue size recommendation at configure time:
+Own implementation. Execution.
+==============================
 
-> cmake .. -DLOGGER_MEMORY_KB=16384
+> logger-bench <memory-bytes> <messages> own <iterations> <loggers>...
+
+Where:
+
+-memory-bytes: Is a recommendation passed at construction of each logger to try
+  to limit is memory usage. Only some loggers with bounded queues implement it.
+  If you see that "faults" are reported, it's very likely that the logger was
+  unable to empty its buffer (write to disk) as fast as the messages were
+  generated.
+
+-messages: The number of messages to send each time.
+
+-own: Fixed string that selects the "own" benchmark subcommand.
+
+-iterations: The number of times to repeat the tests.
+
+-loggers: A space separated list of loggers to run. The possible values depend
+   on how the library was compiled. run "logger-bench" 8MB 100000 own --help" to
+   see a list of which loggers are available.
+
+Notice that on Linux is beneficial to set the performance governor before
+running:
+
+> sudo cpupower frequency-set --governor performance
+
+Restore the governor after testing.
+
+Google benchmark. Metodology
+============================
+
+All the tests above are reused and adapted to Google Benchmark. The metodology
+of Google benchmark is not documented here. You can check its repository:
+
+https://github.com/google/benchmark
+
+Google benchmark. Execution
+============================
+
+> logger-bench <memory-bytes> <messages> google [google benchmark args]
+
+"memory-bytes" and "messages" are the same as in the own implementation, the
+only difference is that messages accepts zero values, when messages is 0 Google
+Benchmark tries to adjust the number of measurements dynamically.
+
+"google benchmark args" are not documented here. See:
+
+https://github.com/google/benchmark
 
 Tested libraries
 ================
@@ -164,10 +211,6 @@ mini-async-log* loggers can be turned off too:
 
 > cmake .. -DMALC=off -DMAL=off
 
-Execution
-=========
-
-> logger-bench <iterations> <messages/iteration> <loggers>...
 
 Notes
 =====
@@ -177,8 +220,6 @@ summary of logger traits that one has to consider when looking at the results.
 
 malc
 ----
-
-* Timestamping at the consumer side (can be configured not to).
 
 * The format string has to _always_ be a literal.
 
@@ -225,8 +266,8 @@ Nanolog (Standford)
 
 * It has a background compression thread waking up each microsecond (see
   runtime/Config.h). As this library is a singleton with no explicit
-  initialization/destruction this thread is actually running when the benchmarks
-  of other log libraries are running.
+  initialization/destruction this thread is actually waking up when the
+  benchmarks of other log libraries are running.
 
 G3log
 -----

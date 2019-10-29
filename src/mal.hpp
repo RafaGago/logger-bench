@@ -6,20 +6,17 @@ namespace mal {
     class cfg;
 }
 
-#include <logger.hpp>
-
+#include <logger_impl_helpers.hpp>
 /*----------------------------------------------------------------------------*/
-class mal_base : public logger {
+class mal_base : public logger_adaptor<mal_base> {
 public:
     mal_base();
     virtual ~mal_base();
     virtual bool create (int fixed_queues_bytes);
     virtual void destroy();
-    virtual int enqueue_msgs (int count);
     virtual bool terminate();
-    virtual void fill_latencies (latency_measurements& meas, int count);
-    virtual bool prepare_thread(int fixed_queues_bytes) { return true; }
-
+    template<class T>
+    int run_logging (T& iterable);
 protected:
     mal::frontend* m_log;
     virtual void set_cfg (mal::cfg& cfg, int fixed_queues_bytes) = 0;

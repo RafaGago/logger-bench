@@ -1,10 +1,9 @@
 #include <stdio.h>
 
-#include <latency_measurements.hpp>
-#include <timestamp_ns.hpp>
-
 #include <nanolog.hpp>
 #include <NanoLogCpp17.h>
+
+#include <benchmark_iterables.hpp>
 
 static const char logfile[] = "./logger-bench-nanolog";
 
@@ -32,22 +31,18 @@ bool nanolog::prepare_thread(int fixed_queues_bytes)
     return true;
 }
 /*----------------------------------------------------------------------------*/
-int nanolog::enqueue_msgs (int count)
+template <class T>
+int nanolog::run_logging (T& iterable)
 {
-    for (int i = 0; i < count; ++i) {
-        NANO_LOG (NanoLog::NOTICE, "%s %i", STRING_TO_LOG, i);
+    int success = 0;
+    int i = 0;
+    for (auto _ : iterable) {
+        NANO_LOG (NanoLog::NOTICE, "%s %i", STRING_TO_LOG, ++i);
+        ++success;
     }
-    return count;
+    return success;
 }
-/*----------------------------------------------------------------------------*/
-void nanolog::fill_latencies(latency_measurements& lm, int count)
-{
-    for (int i = 0; i < count; ++i) {
-        uint64_t start = ns_now();
-        NANO_LOG (NanoLog::NOTICE, "%s %i", STRING_TO_LOG, i);
-        lm.add_sample (ns_now() - start, true);
-    }
-}
+INSTANTIATE_RUN_LOGGING_TEMPLATES (nanolog)
 /*----------------------------------------------------------------------------*/
 char const* nanolog::get_name() const
 {

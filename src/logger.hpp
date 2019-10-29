@@ -5,6 +5,8 @@
 #include <cstdint>
 
 class latency_measurements;
+class throughput_measurements;
+namespace benchmark { class State; }
 
 #define STRING_TO_LOG \
     "123567890 123567890 123567890 123567890 123567890 123567890 123567890" \
@@ -31,12 +33,11 @@ public:
     /* does thread initialization, mainly to be used by loggers that use TLS.
     Time measurements won't start until all threads return from this function */
     virtual bool prepare_thread(int fixed_queues_bytes) { return true; }
-    /* Write (Enqueue) count messages. The log string gas to be LOG_STRING. The
-    sequence number has to be written too as an argument. Returns the number of
-    successes */
-    virtual int enqueue_msgs (int count) = 0;
-    /* Write the number of latency measurement to "lm". */
-    virtual void fill_latencies (latency_measurements& lm, int count) = 0;
+    /* Write (Enqueue) the messages by iterating the iterable objects in a
+    loop. */
+    virtual void run_logging (benchmark::State& bs) = 0;
+    virtual void run_logging (latency_measurements& lm) = 0;
+    virtual void run_logging (throughput_measurements& lm) = 0;
 };
 
 #endif /* __TEST_HPP__ */

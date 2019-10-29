@@ -2,20 +2,19 @@
 #define __BENCHMARK_SPDLOG__
 
 #include <memory>
-#include <logger.hpp>
+#include <logger_impl_helpers.hpp>
 
 namespace spdlog {
     class logger;
 }
-
 /*----------------------------------------------------------------------------*/
-class spdlog_base : public logger {
+class spdlog_base : public logger_adaptor<spdlog_base> {
 public:
     virtual ~spdlog_base() {};
     virtual void destroy();
     virtual bool terminate();
-    virtual int enqueue_msgs (int count);
-    virtual void fill_latencies (latency_measurements& meas, int count);
+    template <class T>
+    int run_logging (T& iterable);
 protected:
     std::shared_ptr<spdlog::logger> m_log;
 };

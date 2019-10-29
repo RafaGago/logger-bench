@@ -3,9 +3,7 @@
 #include <mal_log/mal_log.hpp>
 
 #include <mal.hpp>
-#include <latency_measurements.hpp>
-#include <timestamp_ns.hpp>
-
+#include <benchmark_iterables.hpp>
 /*----------------------------------------------------------------------------*/
 mal_base::mal_base()
 {
@@ -52,24 +50,18 @@ void mal_base::destroy()
     m_log = nullptr;
 }
 /*----------------------------------------------------------------------------*/
-int mal_base::enqueue_msgs (int count)
+template <class T>
+int mal_base::run_logging (T& iterable)
 {
     int success = 0;
-    for (int i = 0; i < count; ++i) {
-        bool s = log_error_i (*m_log, STRING_TO_LOG " {}", i);
+    int i = 0;
+    for (auto _ : iterable) {
+        bool s = log_error_i (*m_log, STRING_TO_LOG " {}", ++i);
         success += (s == true);
     }
     return success;
 }
-/*----------------------------------------------------------------------------*/
-void mal_base::fill_latencies(latency_measurements& lm, int count)
-{
-    for (int i = 0; i < count; ++i) {
-        uint64_t start = ns_now();
-        bool success = log_error_i (*m_log, STRING_TO_LOG " {}", i);
-        lm.add_sample (ns_now() - start, success);
-    }
-}
+INSTANTIATE_RUN_LOGGING_TEMPLATES (mal_base)
 /*----------------------------------------------------------------------------*/
 char const* mal_heap::get_name() const
 {

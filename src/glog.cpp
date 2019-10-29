@@ -1,9 +1,7 @@
 #include <glog/logging.h>
 
-#include <latency_measurements.hpp>
-#include <timestamp_ns.hpp>
-
 #include <glog.hpp>
+#include <benchmark_iterables.hpp>
 
 /*----------------------------------------------------------------------------*/
 glog::glog()
@@ -41,22 +39,18 @@ bool glog::terminate()
 /*----------------------------------------------------------------------------*/
 void glog::destroy() {}
 /*----------------------------------------------------------------------------*/
-int glog::enqueue_msgs (int count)
+template <class T>
+int glog::run_logging (T& iterable)
 {
-    for (int i = 0; i < count; ++i) {
-        LOG (INFO) << STRING_TO_LOG << i;
+    int success = 0;
+    int i = 0;
+    for (auto _ : iterable) {
+        LOG (INFO) << STRING_TO_LOG << ++i;
+        ++success;
     }
-    return count;
+    return success;
 }
-/*----------------------------------------------------------------------------*/
-void glog::fill_latencies(latency_measurements& lm, int count)
-{
-    for (int i = 0; i < count; ++i) {
-        uint64_t start = ns_now();
-        LOG (INFO) << STRING_TO_LOG << i;
-        lm.add_sample (ns_now() - start, true);
-    }
-}
+INSTANTIATE_RUN_LOGGING_TEMPLATES (glog)
 /*----------------------------------------------------------------------------*/
 char const* glog::get_name() const
 {

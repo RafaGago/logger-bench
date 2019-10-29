@@ -4,20 +4,19 @@
 struct malc;
 struct malc_cfg;
 
-#include <logger.hpp>
 #include <bl/base/allocator.h>
-
+#include <logger_impl_helpers.hpp>
 /*----------------------------------------------------------------------------*/
-class malc_base : public logger {
+class malc_base : public logger_adaptor<malc_base> {
 public:
     malc_base();
     virtual ~malc_base();
     virtual bool create (int fixed_queues_bytes);
     virtual void destroy();
-    virtual int enqueue_msgs (int count);
     virtual bool terminate();
-    virtual void fill_latencies (latency_measurements& meas, int count);
     virtual bool prepare_thread(int fixed_queues_bytes) { return true; }
+    template <class T>
+    int run_logging (T& iterable);
 
 protected:
     inline struct malc* get_malc_logger_instance()

@@ -1,8 +1,12 @@
 #include <iostream>
+#include <algorithm>
+#include <string>
 
 #include <stdio.h>
 #include <logger.hpp>
 #include <test_suite.hpp>
+#include <benchmark/benchmark.h>
+#include <google_benchmark_adaptor.hpp>
 
 #ifdef HAS_MALC
 #include <malc.hpp>
@@ -66,11 +70,11 @@ static logvector init_logvector()
     return std::move (ret);
 }
 /*----------------------------------------------------------------------------*/
-static void print_usage (logvector const& loggers)
+static void print_own_usage (logvector const& loggers)
 {
     using namespace std;
-    cout << "usage: logger-bench <iterations> <messages> <type 1> .. [<type N>]\n";
-    cout << "  Where type is the logger type. Available options:\n";
+    cout << "usage: own <iterations> <logger-type 1> .. [<logger-type N>]\n";
+    cout << "  Where \"logger-type\" can be any of the values below:\n";
     cout << "    [all]: All the available loggers.\n";
     for (auto const& l: loggers) {
         cout << "    [" << l->get_name() << "]: " ;
@@ -78,75 +82,115 @@ static void print_usage (logvector const& loggers)
     }
 }
 //------------------------------------------------------------------------------
-static bool try_handle_help (std::string str, logvector const& loggers)
+static bool is_help (std::string str)
 {
-    if (str.compare ("help") == 0
+    return str.compare ("help") == 0
         || str.compare ("--help") == 0
-        || str.compare ("-h") == 0
-        ) {
-        print_usage (loggers);
+        || str.compare ("-h") == 0;
+}
+/*----------------------------------------------------------------------------*/
+static bool ustrtoint (int& v, char const* str, char const* errmsg_prefix)
+{
+    unsigned long l;
+    try {
+        l = std::stoull (str);
+        v = (int) l;
+        if (v != l || v < 0) {
+            std::cerr
+                << errmsg_prefix
+                << ", value out of range: \""
+                << str
+                << "\"\n";
+            return false;
+        }
         return true;
     }
-    return false;
+    catch (...) {
+        std::cerr << errmsg_prefix << ": \"" << str << "\"\n";
+        return false;
+    }
+}
+/*----------------------------------------------------------------------------*/
+#define LITLEN(x) (sizeof x - 1)
+#define ENDSWITHLIT(str, lit) (str.rfind(lit) == str.size() - LITLEN(lit))
+/*----------------------------------------------------------------------------*/
+static bool parse_qbytes (int& v, char const* str)
+{
+    std::string s(str);
+    std::transform (s.begin(), s.end(), s.begin(), ::tolower);
+
+    unsigned long long factor = 1;
+    if (ENDSWITHLIT (s, "kb")) {
+        factor = 1024;
+    }
+    if (ENDSWITHLIT (s, "mb")) {
+        factor = 1024 * 1024;
+    }
+    if (ENDSWITHLIT (s, "gb")) {
+        factor = 1024 * 1024 * 1024;
+    }
+    if (factor != 1) {
+        s.erase (s.size() - LITLEN("xb"));
+    }
+    static char const errmsg[] =
+        "invalid recommended logger memory usage";
+
+    if (!ustrtoint(v, s.c_str(), errmsg)) {
+        return false;
+    }
+    unsigned long long m = ((unsigned long long) v) * factor;
+    v = (int) m;
+    if (v < 0 || v != m) {
+        std::cerr
+            << errmsg
+            << ", value out of range: \""
+            << str
+            << "\"\n";
+        return false;
+    }
+    return true;
 }
 /*----------------------------------------------------------------------------*/
 static int parse_args(
-    logvector& loggers, int& msgs, int& iterations, int argc, char const* argv[]
+    logvector& loggers, int& iterations, int msgs, int argc, char ** argv
     )
 {
     using namespace std;
-    if (argc < 2) {
-        cerr << "no message count specified\n\n";
-        print_usage (loggers);
+    for (int i = 1; i < argc; ++i) {
+        if (is_help (argv[i])) {
+            print_own_usage (loggers);
+            return -1;
+        }
+    }
+    int currarg = 1;
+    if (argc < currarg + 1) {
+        cerr << "no iteration count specified\n";
+        print_own_usage (loggers);
         return 1;
     }
-    if (try_handle_help (argv[1], loggers)) {
-        return -1;
-    }
-    char* end;
-    iterations = strtol (argv[1], &end, 10);
-    if (argv[1] == end) {
-        cerr << "invalid itereration count: " << argv[1] << "\n\n" ;
+    if (!ustrtoint (iterations, argv[currarg], "invalid iteration count")) {
         return 1;
     }
-    if (iterations <= 0) {
-        cerr << "the number of iterations must be bigger than 0\n\n" ;
-        return 1;
-    }
-    if (argc < 3) {
-        cerr << "no iteration count specified\n\n";
-        print_usage (loggers);
-        return 1;
-    }
-    if (try_handle_help (argv[2], loggers)) {
-        return -1;
-    }
-    msgs = strtol (argv[2], &end, 10);
-    if (argv[1] == end) {
-        cerr << "invalid message count: " << argv[2] << "\n\n" ;
-        return 1;
-    }
-    if (msgs <= max_threads) {
+    if (msgs < max_threads) {
         cerr << "the message count must be bigger than "<<  max_threads
-             << "\n\n";
+             << "\n";
         return 1;
     }
-    if (argc < 4) {
-        cerr << "no logger type specified\n\n";
-        print_usage (loggers);
+    ++currarg;
+    if (argc < currarg + 1) {
+        cerr << "no logger type specified\n";
+        print_own_usage (loggers);
         return 1;
     }
-    bool has_all = argc == 4 && std::string (argv[3]).compare ("all") == 0;
+    bool has_all = (argc == currarg + 1);
+    has_all = has_all && std::string (argv[currarg]).compare ("all") == 0;
     std::vector<bool> enabled (loggers.size(), has_all);
     if (!has_all) {
-        for (int arg = 3; arg < argc; ++arg) {
-            std::string type (argv[arg]);
-            if (try_handle_help (type, loggers)) {
-               return -1;
-            }
+        for (int narg = currarg; narg < argc; ++narg) {
+            std::string type (argv[narg]);
             int i = 0;
             if (type.compare ("all") == 0) {
-                cerr << "\"all\" logger must be the only type specified\n\n" ;
+                cerr << "\"all\" logger must be the only type specified\n" ;
                 return 1;
             }
             for (; i < loggers.size(); ++i) {
@@ -156,7 +200,7 @@ static int parse_args(
                 }
             }
             if (i == loggers.size()) {
-                cerr << "invalid logger type: " << type << "\n\n" ;
+                cerr << "invalid logger type: " << type << "\n" ;
                 return 1;
             }
         }
@@ -171,17 +215,128 @@ static int parse_args(
     return 0;
 }
 /*----------------------------------------------------------------------------*/
-int main (int argc, char const* argv[])
+int own_subcommand (int argc, char** argv, int qsize, int messages)
 {
-    static const int mem = LOGGER_MEMORY_KB * 1024;
-    int msgs       = 0;
     int iterations = 0;
     logvector loggers = init_logvector();
-    int r = parse_args (loggers, msgs, iterations, argc, argv);
+    int r = parse_args (loggers, iterations, messages, argc, argv);
     if (r != 0) {
       return (r < 0) ? 0 : r;
     }
     test_results results;
-    return run_tests (results, msgs, iterations, mem, loggers);
+    return run_tests (results, messages, iterations, qsize, loggers);
+}
+/*----------------------------------------------------------------------------*/
+int gbench_subcommand (int argc, char** argv, int qsize, int messages)
+{
+    if (messages != 0 && messages < max_threads) {
+        std::cerr
+            << "the message count has to be 0 or bigger than "<<  max_threads
+            << "\n";
+        return 1;
+    }
+    ::benchmark::Initialize (&argc, argv);
+    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
+      return 1;
+    }
+    logvector loggers = init_logvector();
+    for (std::unique_ptr<logger>& log: loggers) {
+        for (int i = 0; i < thread_count_idxs; ++i) {
+            auto b = ::benchmark::RegisterBenchmark(
+                log->get_name(),
+                run_google_benchmark,
+                &(*log),
+                qsize
+                );
+            b->Threads (thread_count[i]);
+            if (messages) {
+                b->Iterations (messages / thread_count[i]);
+            }
+            b->ComputeStatistics(
+                "max", [](const std::vector<double>& v) -> double
+            {
+                return *std::max_element (v.begin(), v.end());
+            });
+            b->ComputeStatistics(
+                "99%", [](const std::vector<double>& v) -> double
+            {
+                std::vector<double> cp = v;
+                std::sort (cp.begin(), cp.end());
+                return cp.size() ?
+                    cp[(unsigned long) (((double) cp.size()) * 0.99)] : 0.;
+            });
+            b->ComputeStatistics(
+                "50%", [](const std::vector<double>& v) -> double
+            {
+                std::vector<double> cp = v;
+                std::sort (cp.begin(), cp.end());
+                return cp.size() ?
+                    cp[(unsigned long) (((double) cp.size()) * 0.5)] : 0.;
+            });
+        }
+    }
+    ::benchmark::RunSpecifiedBenchmarks();
+}
+/*----------------------------------------------------------------------------*/
+void print_main_help (void)
+{
+    using namespace std;
+    cout << "usage: logger-bench <logger-mem-usage> <message-count> <subcommand> ...\n";
+    cout << "  Where:\n";
+    cout << "    -logger-mem-usage: recommended memory usage in bytes to be \n";
+    cout << "      used by each logger. Accepts kB, MB and GB suffixes. \n";
+    cout << "\n";
+    cout << "    -message-count: the message count for each single test. If\n";
+    cout << "      left to zero the \"google\" subcommand will try to find a\n";
+    cout << "      message count automatically.\n";
+    cout << "\n";
+    cout << "    -subcommand: benchmarking implementation. Each of them have\n";
+    cout << "      their own arguments and help. Valid values are:\n";
+    cout << "        [own]: Own benchmarking implementation.\n";
+    cout << "        [google]: Google benchmark implementation.\n";
+}
+/*----------------------------------------------------------------------------*/
+int main (int argc, char* argv[])
+{
+    using namespace std;
+    static const int args = 3;
+    if (argc < args + 1) {
+        std::cerr
+            << "Expecting "
+            << args
+            << " arguments. Got: "
+            << argc - 1
+            << "\n";
+        print_main_help();
+        return 1;
+    }
+    for (int i = 1; i < args + 1; ++i) {
+        if (is_help (argv[i])) {
+            print_main_help();
+            return 0;
+        }
+    }
+    int qbytes;
+    if (!parse_qbytes(qbytes, argv[1])) {
+        return 1;
+    }
+    int msgs;
+    if (!ustrtoint (msgs, argv[2], "invalid message count")) {
+        return 1;
+    }
+    std::string ltype (argv[3]);
+    if (ltype.compare("own") == 0) {
+        return own_subcommand (argc - args, argv + args, qbytes, msgs);
+    }
+    else if (ltype.compare("google") == 0) {
+        return gbench_subcommand (argc - args, argv + args, qbytes, msgs);
+    }
+    else {
+        std::cerr
+            << "invalid subcommand. Valid values: [own, google], got: \""
+            << ltype
+            << "\"\n";
+        return 1;
+    }
 }
 /*----------------------------------------------------------------------------*/
