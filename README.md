@@ -81,6 +81,11 @@ https://github.com/google/benchmark
 Tested libraries
 ================
 
+Here is a listing of the tested libraries. Only those belonging to me, the
+author, are enabled as default as of now. If you want to enable all use:
+
+> cmake .. -DENABLE_ALL=on
+
 mini-async-log-c
 ----------------
 

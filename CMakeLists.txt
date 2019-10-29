@@ -14,10 +14,20 @@ option(SPDLOG "spdlog enabled" off)
 option(GLOG "Google log enabled" off)
 option(G3LOG "G3 log enabled" off)
 option(NANOLOG2 "NanoLog(2) enabled" off)
+option(ENABLE_ALL "Enables all loggers, overrides other individual values" off)
 
 project(logger_bench VERSION ${VERSION_FULL})
 set (CMAKE_CXX_STANDARD 11)
 
+if (ENABLE_ALL)
+    set (MALC on)
+    set (MAL on)
+    set (NANOLOG on)
+    set (SPDLOG on)
+    set (GLOG on)
+    set (G3LOG on)
+    set (NANOLOG2 on)
+endif()
 #-- Own Binary -----------------------------------------------------------------
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/src)
