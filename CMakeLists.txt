@@ -36,6 +36,7 @@ set(LOGGER_INSTALL ${CMAKE_BINARY_DIR}/install)
 add_executable(
     logger-bench
     ${SOURCES}/main.cpp
+    ${SOURCES}/cpuclock.cpp
     )
 
 target_include_directories(
@@ -69,10 +70,13 @@ endif()
 
 #-- Google benchmark -----------------------------------------------------------
 
+set (GBENCHMARK_REPO ${CMAKE_BINARY_DIR}/gbenchmark-git)
+
 ExternalProject_Add(
     gbenchmark_artifacts
     GIT_REPOSITORY https://github.com/google/benchmark.git
     GIT_TAG        v1.5.0
+    SOURCE_DIR     ${GBENCHMARK_REPO}
     UPDATE_COMMAND ""
     INSTALL_DIR    ${LOGGER_INSTALL}
     CMAKE_ARGS     -DCMAKE_INSTALL_PREFIX=${LOGGER_INSTALL} -DBENCHMARK_ENABLE_TESTING=off -DBENCHMARK_ENABLE_GTEST_TESTS=off -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -91,6 +95,7 @@ set_property(
     )
 add_dependencies (gbenchmark_main gbenchmark_artifacts)
 
+target_include_directories (logger-bench PRIVATE ${GBENCHMARK_REPO}/src)
 target_link_libraries (logger-bench gbenchmark gbenchmark_main)
 
 #-- malc -----------------------------------------------------------------------

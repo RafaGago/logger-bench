@@ -7,6 +7,7 @@
 #include <test_suite.hpp>
 #include <benchmark/benchmark.h>
 #include <google_benchmark_adaptor.hpp>
+#include <cpuclock.hpp>
 
 #ifdef HAS_MALC
 #include <malc.hpp>
@@ -229,6 +230,17 @@ int own_subcommand (int argc, char** argv, int qsize, std::size_t messages)
     if (r != 0) {
       return (r < 0) ? 0 : r;
     }
+
+    std::cout << "estimating cpu clock frequency ... " << std::flush;
+    cpuclock_init();
+    to_si_units (std::cout, cpuclock_get_freq(), "Hz");
+    std::cout << ", call overhead: ";
+    to_si_units(
+        std::cout,
+        cpuclock_get_call_overhead_ns() / ns_sec,
+        "s");
+    std::cout << "\n";
+
     test_results results;
     return run_tests (results, messages, iterations, qsize, loggers);
 }

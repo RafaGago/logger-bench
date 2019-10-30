@@ -2,7 +2,7 @@
 #define __THROUGHPUT_MEASUREMENTS__
 
 #include <cassert>
-#include <timestamp_ns.hpp>
+#include <cpuclock.hpp>
 #include <nonstandard_compiler.hpp>
 
 class throughput_iterator;
@@ -39,12 +39,12 @@ public:
         return m_expected;
     }
 
-    uint64_t get_start() const
+    cpuclock_t get_start() const
     {
         return m_start;
     }
 
-    uint64_t get_end() const
+    cpuclock_t get_end() const
     {
         return m_end;
     }
@@ -62,10 +62,10 @@ private:
         m_end = 0;
     }
 
-    decltype(ns_now()) m_start;
-    decltype(ns_now()) m_end;
-    int                m_expected;
-    uint64_t           m_successes;
+    cpuclock_t m_start;
+    cpuclock_t m_end;
+    int        m_expected;
+    uint64_t   m_successes;
 };
 /*----------------------------------------------------------------------------*/
 class throughput_iterator
@@ -107,7 +107,7 @@ public:
         if (likely (m_remaining > 0)) {
             return true;
         }
-        m_throughput->m_end = ns_now();
+        m_throughput->m_end = cpuclock_get();
         return false;
     }
 
@@ -123,7 +123,7 @@ inline forceinline throughput_iterator throughput_measurements::begin()
 }
 inline forceinline throughput_iterator throughput_measurements::end()
 {
-    this->m_start = ns_now();
+    this->m_start = cpuclock_get();
     return throughput_iterator();
 }
 /*----------------------------------------------------------------------------*/

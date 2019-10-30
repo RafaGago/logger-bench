@@ -5,11 +5,14 @@
 #include <cstddef>
 #include <cstring>
 
+#include <utility.hpp>
 /*----------------------------------------------------------------------------*/
-struct test_result {
+class test_result {
+public:
     int         thread_count;
     std::size_t throughput_faults;
     std::size_t latency_faults;
+    std::size_t messages;
     uint64_t    producer_ns;
     uint64_t    total_ns;
     uint32_t    latency_ns_50;
@@ -22,9 +25,53 @@ struct test_result {
     uint32_t    latency_ns_999;
     uint32_t    latency_ns_min;
     uint32_t    latency_ns_max;
+
+    template <class T>
+    void to_stream (T& stream)
+    {
+        double r;
+        stream << "thr: " << thread_count;
+        stream << ", faults: ";
+        to_si_units (stream, throughput_faults);
+        stream << ", rate: ";
+        r  = (double) messages;
+        r /= (double) producer_ns;
+        r *= ns_sec;
+        to_si_units (stream, r, "msgs/s");
+        stream << ", lat 50%: ";
+        to_si_units (stream, ((double) latency_ns_50) / ns_sec, "s");
+        stream << ", lat 99.9%: ";
+        to_si_units (stream, ((double) latency_ns_999) / ns_sec, "s");
+        stream << ", lat max: ";
+        to_si_units (stream, ((double) latency_ns_max) / ns_sec, "s");
+    }
+
+    void apply_clock_correction (uint32_t ns)
+    {
+        clock_correct (producer_ns , ns);
+        clock_correct (total_ns , ns);
+        clock_correct (latency_ns_50 , ns);
+        clock_correct (latency_ns_75 , ns);
+        clock_correct (latency_ns_85 , ns);
+        clock_correct (latency_ns_90 , ns);
+        clock_correct (latency_ns_95 , ns);
+        clock_correct (latency_ns_97 , ns);
+        clock_correct (latency_ns_99 , ns);
+        clock_correct (latency_ns_999 , ns);
+        clock_correct (latency_ns_min , ns);
+        clock_correct (latency_ns_max , ns);
+    }
+private:
+    template <class T>
+    static inline void clock_correct (T& v, uint32_t ns)
+    {
+        auto old = v;
+        v -= ns;
+        assert (old > v);
+    }
 };
 /*----------------------------------------------------------------------------*/
-/* A 3d dynamic array with validation (blatant wheel reinvention)*/
+/* A 3d dynamic array with validation (wheel reinvention)*/
 /*----------------------------------------------------------------------------*/
 class test_results {
 public:
@@ -86,6 +133,7 @@ public:
         addr += iteration;
         return addr;
     }
+
 private:
     void deinit()
     {

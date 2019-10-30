@@ -16,7 +16,7 @@
 #include <test_results.hpp>
 #include <latency_measurements.hpp>
 #include <throughput_measurements.hpp>
-#include <timestamp_ns.hpp>
+#include <cpuclock.hpp>
 
 static int max_threads = 16;
 
@@ -49,7 +49,7 @@ typedef std::vector<std::unique_ptr<logger>> logvector;
 static bool run_throughput(
     test_result&          tr,
     logger&               l,
-    int                   msgs,
+    std::size_t           msgs,
     int                   thread_count,
     std::size_t           mem_bytes
     )
@@ -63,7 +63,7 @@ static bool run_throughput(
         new throughput_measurements[thread_count]
         );
     atomic<int> initialized (0);
-    decltype (ns_now()) total_end;
+    cpuclock_t total_end;
 
     auto msgs_thr = msgs / thread_count;
 
@@ -105,41 +105,29 @@ static bool run_throughput(
         l.run_logging (results[0]);
     }
     l.terminate();
-    total_end = ns_now();
+    total_end = cpuclock_get();
     l.destroy();
 
     auto min_start = results[0].get_start();
     auto max_end   = results[0].get_end();
+    tr.messages = msgs;
     tr.throughput_faults = 0;
     for (unsigned i = 0; i < thread_count; ++i) {
         tr.throughput_faults += results[i].get_faults();
         min_start = std::min (min_start, results[i].get_start());
         max_end   = std::max (max_end, results[i].get_end());
     }
-    tr.producer_ns = max_end - min_start;
-    tr.total_ns    = total_end - min_start;
+    tr.producer_ns = cpuclock_to_ns (max_end - min_start);
+    tr.total_ns    = cpuclock_to_ns (total_end - min_start);
     return true;
-}
-/*----------------------------------------------------------------------------*/
-static uint32_t get_minimum_timestamp_latency()
-{
-    uint32_t min = (uint32_t) -1;
-    for (int i = 0; i < 100000; ++i) {
-        uint32_t first = ns_now();
-        uint32_t l = ns_now() - first;
-        l   = (l > 0) ? l : (uint32_t) -1;
-        min = (l < min) ? l : min;
-    }
-    return min != (uint32_t) -1 ? min : 0;
 }
 /*----------------------------------------------------------------------------*/
 static bool run_latency(
     test_result&          tr,
     logger&               l,
-    int                   msgs,
+    std::size_t           msgs,
     int                   thread_count,
-    std::size_t           mem_bytes,
-    uint32_t              timestamp_latency_ns
+    std::size_t           mem_bytes
     )
 {
     using namespace std;
@@ -163,7 +151,7 @@ static bool run_latency(
         set_thread_cpu (thread_count);
         for (unsigned i = 0; i < thread_count; ++i) {
             latency_measurements& lm = results[i];
-            lm.prepare (msgs_thr, timestamp_latency_ns);
+            lm.prepare (msgs_thr);
             threads[i] = thread ([=, &l, &initialized, &lm]()
             {
                 set_thread_cpu (i);
@@ -185,33 +173,34 @@ static bool run_latency(
     }
     else {
         set_thread_cpu (0);
-        results[0].prepare (msgs_thr, timestamp_latency_ns);
+        results[0].prepare (msgs_thr);
         l.prepare_thread (mem_bytes);
         l.run_logging (results[0]);
     }
     l.terminate();
     l.destroy();
+    latency_measurements &lm = results[0];
     for (int i = 1; i < thread_count; ++i) {
-        results[0].join (results[i]);
+        lm.join (results[i]);
     }
-    results[0].finish();
-    tr.latency_faults = results[0].get_faults();
-    tr.latency_ns_50  = results[0].get_percentile_ns (50.);
-    tr.latency_ns_75  = results[0].get_percentile_ns (75.);
-    tr.latency_ns_85  = results[0].get_percentile_ns (85.);
-    tr.latency_ns_90  = results[0].get_percentile_ns (90.);
-    tr.latency_ns_95  = results[0].get_percentile_ns (95.);
-    tr.latency_ns_97  = results[0].get_percentile_ns (97.);
-    tr.latency_ns_99  = results[0].get_percentile_ns (99.);
-    tr.latency_ns_999 = results[0].get_percentile_ns (99.9);
-    tr.latency_ns_min = results[0].get_min_ns();
-    tr.latency_ns_max = results[0].get_max_ns();
+    lm.finish();
+    tr.latency_faults = lm.get_faults();
+    tr.latency_ns_50  = cpuclock_to_ns (lm.get_percentile_ns (50.));
+    tr.latency_ns_75  = cpuclock_to_ns (lm.get_percentile_ns (75.));
+    tr.latency_ns_85  = cpuclock_to_ns (lm.get_percentile_ns (85.));
+    tr.latency_ns_90  = cpuclock_to_ns (lm.get_percentile_ns (90.));
+    tr.latency_ns_95  = cpuclock_to_ns (lm.get_percentile_ns (95.));
+    tr.latency_ns_97  = cpuclock_to_ns (lm.get_percentile_ns (97.));
+    tr.latency_ns_99  = cpuclock_to_ns (lm.get_percentile_ns (99.));
+    tr.latency_ns_999 = cpuclock_to_ns (lm.get_percentile_ns (99.9));
+    tr.latency_ns_min = cpuclock_to_ns (lm.get_percentile_ns (0.));
+    tr.latency_ns_max = cpuclock_to_ns (lm.get_percentile_ns (100.));
     return true;
 }
 /*----------------------------------------------------------------------------*/
 static int run_tests(
   test_results& results,
-  int           msgs,
+  std::size_t   msgs,
   int           iterations,
   std::size_t   mem_bytes,
   logvector&    loggers
@@ -220,17 +209,13 @@ static int run_tests(
     using namespace std;
     test_results res;
     res.init (loggers.size(), thread_count_idxs, iterations);
-    uint32_t latency = get_minimum_timestamp_latency();
-    cout << "timestamp latency(ns): "
-         << latency
-         << ". -> subtracted from each latency sample\n";
 
     for (int it = 0; it < iterations; ++it) {
       cout << "iteration: " << it << "\n";
       for (int l = 0; l < loggers.size(); ++l) {
+          cout << "--" << loggers[l]->get_name() << "--\n";
           for (int t = 0; t < thread_count_idxs; ++t) {
               int threads = thread_count[t];
-              cout << loggers[l]->get_name() << " threads: " << threads << ", ";
               test_result* tr = res.at (l, t, it);
               assert (tr);
               memset (tr, 0, sizeof *tr);
@@ -241,22 +226,13 @@ static int run_tests(
                 return 1;
               }
               success = run_latency(
-                  *tr, *loggers[l], msgs, threads, mem_bytes, latency
+                  *tr, *loggers[l], msgs, threads, mem_bytes
                   );
               if (!success) {
                 return 1;
               }
-              float rate = (double) (msgs - tr->throughput_faults);
-              rate /= (double) tr->producer_ns;
-              rate *= 1000000;
-              float trate = (double) (msgs - tr->throughput_faults);
-              trate /= (double) tr->total_ns;
-              trate *= 1000000;
-              cout << "Kmsgs/s: "    << rate;
-              cout << ", faults: "   << tr->throughput_faults;
-              cout << ", l50(ns):"   << tr->latency_ns_50;
-              cout << ", l99.9(ns):" << tr->latency_ns_999;
-              cout << ", lmax(ns):"  << tr->latency_ns_max;
+              tr->apply_clock_correction (cpuclock_get_call_overhead_ns());
+              tr->to_stream (cout);
               cout << "\n";
           }
       }

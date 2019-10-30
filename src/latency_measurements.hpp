@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <chrono>
-#include <timestamp_ns.hpp>
+#include <cpuclock.hpp>
 #include <nonstandard_compiler.hpp>
 
 class latency_iterator;
@@ -19,17 +19,11 @@ public:
         reset();
     }
 
-    void add_sample (uint32_t ns, bool is_success)
+    void add_sample (cpuclock_t s)
     {
-        /* as this can be inlined, avoid optimizations changing the moment when
-        the timestamp is taken */
-        std::atomic_thread_fence (std::memory_order_relaxed);
-        uint32_t v = ns - m_min_measurable_ns;
-        v = v <= ns ? v : m_min_measurable_ns;
+        uint32_t v = s;
+        assert (s == v); /* max 4.294967295 seconds/entry*/
         m_results.push_back (v);
-        m_min = std::min (m_min, v);
-        m_max = std::max (m_max, v);
-        m_success += (is_success == true);
     }
 
     void add_successes (std::size_t count)
@@ -37,7 +31,7 @@ public:
         m_success += count;
     }
 
-    bool prepare (std::size_t elements, uint32_t min_measurable_ns)
+    bool prepare (std::size_t elements)
     {
         if (elements < 0) {
             return false;
@@ -45,7 +39,6 @@ public:
         reset();
         m_results.reserve (elements);
         m_expected = elements;
-        m_min_measurable_ns = min_measurable_ns;
         return true;
     }
     bool finish()
@@ -65,7 +58,7 @@ public:
         m_expected += lm.m_results.size();
         m_success  += lm.m_success;
         for (uint32_t v : lm.m_results) {
-            add_sample (v, false);
+            add_sample (v);
         }
         lm.reset();
     }
@@ -77,24 +70,20 @@ public:
         /*improvement for small data sets: some type of interpolation*/
         return m_results[std::min (idx, m_results.size() - 1)];
     }
-    uint32_t get_min_ns() const
-    {
-        return m_min;
-    }
-    uint32_t get_max_ns() const
-    {
-        return m_max;
-    }
+
     std::size_t get_faults() const
     {
         return m_expected - m_success;
     }
+
     std::size_t get_expected() const
     {
         return m_expected;
     }
+
     inline forceinline latency_iterator begin();
     inline forceinline latency_iterator end();
+
 private:
     void reset()
     {
@@ -104,13 +93,11 @@ private:
         m_max               = 0;
         m_expected          = 0;
         m_success           = 0;
-        m_min_measurable_ns = 0;
     }
 
     std::vector<uint32_t> m_results;
     uint32_t              m_min;
     uint32_t              m_max;
-    uint32_t              m_min_measurable_ns;
     std::size_t           m_expected;
     std::size_t           m_success;
 };
@@ -152,12 +139,12 @@ public:
     forceinline bool operator!= (latency_iterator const&)
     {
         if (likely (m_remaining != m_expected)) {
-            m_latency->add_sample (ns_now() - m_prev_point, true);
-            m_prev_point = ns_now();
+            m_latency->add_sample (cpuclock_get() - m_prev_point);
+            m_prev_point = cpuclock_get();
             return m_remaining != 0;
         }
         /*first iteration before even entering the loop*/
-        m_prev_point = ns_now();
+        m_prev_point = cpuclock_get();
         return true;
     }
 
@@ -165,7 +152,7 @@ private:
     latency_measurements* m_latency;
     std::size_t           m_remaining;
     std::size_t           m_expected;
-    decltype(ns_now())    m_prev_point;
+    cpuclock_t            m_prev_point;
 };
 /*----------------------------------------------------------------------------*/
 inline forceinline latency_iterator latency_measurements::begin()
