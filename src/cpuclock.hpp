@@ -5,6 +5,7 @@
 #include <cycleclock.h>
 
 typedef uint64_t cpuclock_t;
+#include <chrono>
 /*----------------------------------------------------------------------------*/
 inline BENCHMARK_ALWAYS_INLINE cpuclock_t cpuclock_get()
 {

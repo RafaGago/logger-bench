@@ -47,6 +47,9 @@ static logvector init_logvector()
     ret.push_back (std::unique_ptr<logger> (new malc_heap()));
     ret.push_back (std::unique_ptr<logger> (new malc_fixed()));
     ret.push_back (std::unique_ptr<logger> (new malc_fixed_cpu()));
+    ret.push_back (std::unique_ptr<logger> (new malc_tls_heap()));
+    ret.push_back (std::unique_ptr<logger> (new malc_fixed_heap()));
+    ret.push_back (std::unique_ptr<logger> (new malc_fixed_cpu_heap()));
 #endif
 #ifdef HAS_MAL
     ret.push_back (std::unique_ptr<logger> (new mal_heap()));

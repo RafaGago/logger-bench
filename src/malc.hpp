@@ -64,4 +64,28 @@ protected:
     void set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes);
 };
 /*----------------------------------------------------------------------------*/
+class malc_tls_heap : public malc_tls {
+public:
+    virtual char const* get_name() const;
+    virtual char const* get_description() const;
+protected:
+    void set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes);
+};
+/*----------------------------------------------------------------------------*/
+class malc_fixed_heap : public malc_fixed {
+public:
+    virtual char const* get_name() const;
+    virtual char const* get_description() const;
+protected:
+    void set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes);
+};
+/*----------------------------------------------------------------------------*/
+class malc_fixed_cpu_heap : public malc_fixed_cpu {
+public:
+    virtual char const* get_name() const;
+    virtual char const* get_description() const;
+protected:
+    void set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes);
+};
+/*----------------------------------------------------------------------------*/
 #endif /*__BENCHMARK_MALC__*/

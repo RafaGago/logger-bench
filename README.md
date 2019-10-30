@@ -106,6 +106,12 @@ Adds four variants to the tests:
 * malc-fixed: using a bounded buffer for memory allocation.
 * malc-fixed-cpu: using as many bounded buffers as CPUs for memory allocation.
 * malc-heap: using the heap for memory allocation.
+* malc-tls-heap: As malc-tls, but using the heap when the main buffer is
+  exhausted;
+* malc-fixed-heap: As malc-fixed, but using the heap when the main buffer is
+  exhausted;
+* malc-fixed-cpu-heap: As malc-fixed-cpu, but using the heap when the main
+  buffer is exhausted;
 
 No hybrid variations are tested. The library supports them.
 

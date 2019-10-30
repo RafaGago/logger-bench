@@ -161,11 +161,66 @@ char const* malc_fixed_cpu::get_description() const
     return "mal C using one fixed size memory pool for each CPU";
 }
 /*----------------------------------------------------------------------------*/
-void malc_fixed_cpu::set_cfg (struct malc_cfg& cfg, std::size_t fixed_queues_bytes)
+void malc_fixed_cpu::set_cfg(
+    struct malc_cfg& cfg, std::size_t fixed_queues_bytes
+    )
 {
     cfg.alloc.msg_allocator         = nullptr;
     cfg.alloc.fixed_allocator_bytes = fixed_queues_bytes / bl_get_cpu_count();
     cfg.alloc.fixed_allocator_max_slots = 2;
     cfg.alloc.fixed_allocator_per_cpu   = 1;
+}
+/*----------------------------------------------------------------------------*/
+void malc_tls_heap::set_cfg(
+    struct malc_cfg& cfg, std::size_t fixed_queues_bytes
+    )
+{}
+/*----------------------------------------------------------------------------*/
+char const* malc_tls_heap::get_name() const
+{
+    return "malc-tls-heap";
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_tls_heap::get_description() const
+{
+    return "as malc-tls but using the as heap fallback";
+}
+/*----------------------------------------------------------------------------*/
+void malc_fixed_heap::set_cfg(
+    struct malc_cfg& cfg, std::size_t fixed_queues_bytes
+    )
+{
+    auto alloc = cfg.alloc.msg_allocator;
+    malc_fixed::set_cfg (cfg, fixed_queues_bytes);
+    cfg.alloc.msg_allocator = alloc;
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_fixed_heap::get_name() const
+{
+    return "malc-fixed-heap";
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_fixed_heap::get_description() const
+{
+    return "as malc-fixed but using the as heap fallback";
+}
+/*----------------------------------------------------------------------------*/
+void malc_fixed_cpu_heap::set_cfg(
+    struct malc_cfg& cfg, std::size_t fixed_queues_bytes
+    )
+{
+    auto alloc = cfg.alloc.msg_allocator;
+    malc_fixed_cpu::set_cfg (cfg, fixed_queues_bytes);
+    cfg.alloc.msg_allocator = alloc;
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_fixed_cpu_heap::get_name() const
+{
+    return "malc-fixed-cpu-heap";
+}
+/*----------------------------------------------------------------------------*/
+char const* malc_fixed_cpu_heap::get_description() const
+{
+    return "as malc-fixed-cpu but using the as heap fallback";
 }
 /*----------------------------------------------------------------------------*/
