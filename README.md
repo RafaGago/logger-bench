@@ -81,10 +81,12 @@ https://github.com/google/benchmark
 Tested libraries
 ================
 
-Here is a listing of the tested libraries. Only those belonging to me, the
-author, are enabled as default as of now. If you want to enable all use:
+Here is a listing of the tested libraries. If you want to enable all use:
 
 > cmake .. -DENABLE_ALL=on
+
+Enabling them all can cause different results than just having a logger for each
+executable, as some singleton loggers consume resources from the start.
 
 mini-async-log-c
 ----------------

@@ -7,8 +7,8 @@ set (VERSION_MINOR 0)
 set (VERSION_REV 0)
 set (VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REV}")
 
-option(MALC "mini async log C enabled" on)
-option(MAL "mini async log enabled" on)
+option(MALC "mini async log C enabled" off)
+option(MAL "mini async log enabled" off)
 option(NANOLOG "NanoLog enabled" off)
 option(SPDLOG "spdlog enabled" off)
 option(GLOG "Google log enabled" off)
@@ -19,6 +19,8 @@ option(ENABLE_ALL "Enables all loggers, overrides other individual values" off)
 project(logger_bench VERSION ${VERSION_FULL})
 set (CMAKE_CXX_STANDARD 11)
 
+set (HAS_LOGGERS false)
+
 if (ENABLE_ALL)
     set (MALC on)
     set (MAL on)
@@ -28,6 +30,7 @@ if (ENABLE_ALL)
     set (G3LOG on)
     set (NANOLOG2 on)
 endif()
+
 #-- Own Binary -----------------------------------------------------------------
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/src)
@@ -101,6 +104,8 @@ target_link_libraries (logger-bench gbenchmark gbenchmark_main)
 #-- malc -----------------------------------------------------------------------
 
 if (MALC)
+    set (HAS_LOGGERS true)
+
     ExternalProject_Add(
         malc_artifacts
         GIT_REPOSITORY    https://github.com/RafaGago/mini-async-log-c.git
@@ -148,6 +153,8 @@ endif (MALC)
 #-- mal ------------------------------------------------------------------------
 
 if (MAL)
+    set (HAS_LOGGERS true)
+
     ExternalProject_Add(
         mal_artifacts
         GIT_REPOSITORY https://github.com/RafaGago/mini-async-log.git
@@ -171,6 +178,8 @@ endif (MAL)
 #-- nanolog --------------------------------------------------------------------
 
 if (NANOLOG_IYENGAR)
+    set (HAS_LOGGERS true)
+
     set (NANOLOG_IYENGAR_REPO ${CMAKE_BINARY_DIR}/nanolog-iyengar-git)
 
     ExternalProject_Add(
@@ -192,6 +201,8 @@ endif (NANOLOG_IYENGAR)
 #-- spdlog ---------------------------------------------------------------------
 
 if (SPDLOG)
+    set (HAS_LOGGERS true)
+
     set (SPDLOG_REPO ${CMAKE_BINARY_DIR}/spdlog-git)
 
     ExternalProject_Add(
@@ -213,6 +224,8 @@ endif (SPDLOG)
 #-- glog -----------------------------------------------------------------------
 
 if (GLOG)
+    set (HAS_LOGGERS true)
+
     ExternalProject_Add(
         glog_artifacts
         GIT_REPOSITORY https://github.com/google/glog.git
@@ -236,6 +249,8 @@ endif (GLOG)
 #-- g3log ----------------------------------------------------------------------
 
 if (G3LOG)
+    set (HAS_LOGGERS true)
+
     ExternalProject_Add(
         g3log_artifacts
         GIT_REPOSITORY https://github.com/KjellKod/g3log.git
@@ -263,6 +278,8 @@ endif (G3LOG)
 #-- nanolog---------------------------------------------------------------------
 
 if (NANOLOG)
+    set (HAS_LOGGERS true)
+
     set (NANOLOG_REPO ${CMAKE_BINARY_DIR}/nanolog-standford-git)
 
     ExternalProject_Add(
@@ -293,6 +310,13 @@ if (NANOLOG)
 endif (NANOLOG)
 
 #-- System libraries -----------------------------------------------------------
+
+if (NOT HAS_LOGGERS)
+    message(
+        FATAL_ERROR
+        "No loggers specified. Check out the options on top of CMakeLists.txt"
+        )
+endif()
 
 find_package (Threads)
 target_link_libraries (logger-bench  ${CMAKE_THREAD_LIBS_INIT})
