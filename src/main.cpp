@@ -70,6 +70,7 @@ static logvector init_logvector()
 #endif
 #ifdef HAS_NANOLOG
     ret.push_back (std::unique_ptr<logger> (new nanolog()));
+    ret.push_back (std::unique_ptr<logger> (new nanolog_tls()));
 #endif
     return std::move (ret);
 }

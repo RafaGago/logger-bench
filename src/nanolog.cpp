@@ -26,8 +26,6 @@ void nanolog::destroy() {}
 /*----------------------------------------------------------------------------*/
 bool nanolog::prepare_thread(std::size_t fixed_queues_bytes)
 {
-    /*NOTICE, no way to pass memory size restructions*/
-    NanoLog::preallocate();
     return true;
 }
 /*----------------------------------------------------------------------------*/
@@ -52,5 +50,22 @@ char const* nanolog::get_name() const
 char const* nanolog::get_description() const
 {
     return "NanoLog C++17 ((C) Standford University)";
+}
+/*----------------------------------------------------------------------------*/
+bool nanolog_tls::prepare_thread(std::size_t fixed_queues_bytes)
+{
+    /*NOTICE, no way to pass memory size restructions*/
+    NanoLog::preallocate();
+    return true;
+}
+/*----------------------------------------------------------------------------*/
+char const* nanolog_tls::get_name() const
+{
+    return "nanolog-tls";
+}
+/*----------------------------------------------------------------------------*/
+char const* nanolog_tls::get_description() const
+{
+    return "NanoLog C++17 ((C) Standford University calling NanoLog::preallocate()";
 }
 /*----------------------------------------------------------------------------*/

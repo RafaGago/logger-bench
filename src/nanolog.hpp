@@ -11,9 +11,15 @@ public:
     virtual bool create (std::size_t fixed_queues_bytes);
     virtual void destroy();
     virtual bool terminate();
-    virtual bool prepare_thread(std::size_t fixed_queues_bytes);
+    virtual bool prepare_thread (std::size_t fixed_queues_bytes);
     template <class T>
     std::size_t run_logging (T& iterable);
+};
+/*----------------------------------------------------------------------------*/
+class nanolog_tls : public nanolog {
+    virtual char const* get_name() const;
+    virtual char const* get_description() const;
+    virtual bool prepare_thread (std::size_t fixed_queues_bytes);
 };
 /*----------------------------------------------------------------------------*/
 #endif
