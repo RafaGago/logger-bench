@@ -109,7 +109,7 @@ if (MALC)
     ExternalProject_Add(
         malc_artifacts
         GIT_REPOSITORY    https://github.com/RafaGago/mini-async-log-c.git
-        GIT_TAG           572d34a78c8b976acf34842c7e1e0dcb2d124c9d
+        GIT_TAG           9844be93aa2e34a406e6c7de091c19dde9078096
         CONFIGURE_COMMAND
             meson malc_build --prefix=/ --buildtype=${MESON_BUILDTYPE} -Dcompressed_builtins=false -Dcompressed_ptrs=false -Dbare=true
         UPDATE_COMMAND    ""
@@ -121,6 +121,13 @@ if (MALC)
     set_property(
         TARGET                     malc
         PROPERTY IMPORTED_LOCATION ${LOGGER_INSTALL}/lib/${ARCH_TRIPLET}/libmalc.a
+        )
+    add_dependencies(malc malc_artifacts)
+
+    add_library (malcpp STATIC IMPORTED)
+    set_property(
+        TARGET                     malcpp
+        PROPERTY IMPORTED_LOCATION ${LOGGER_INSTALL}/lib/${ARCH_TRIPLET}/libmalcpp.a
         )
     add_dependencies(malc malc_artifacts)
 
@@ -145,7 +152,7 @@ if (MALC)
         )
     add_dependencies (bl_t_extras malc_artifacts)
 
-    target_link_libraries (logger-bench malc bl_nonblock bl_base bl_t_extras)
+    target_link_libraries (logger-bench malcpp malc bl_nonblock bl_base bl_t_extras)
     target_compile_definitions (logger-bench PRIVATE HAS_MALC=1)
     target_sources (logger-bench PRIVATE ${SOURCES}/malc.cpp)
 endif (MALC)

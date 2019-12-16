@@ -34,21 +34,21 @@ Own implementation. Execution.
 
 Where:
 
--memory-bytes: Is a recommendation passed at construction of each logger to try
+- memory-bytes: Is a recommendation passed at construction of each logger to try
   to limit is memory usage. Only some loggers with bounded queues implement it.
   If you see that "faults" are reported, it's very likely that the logger was
   unable to empty its buffer (write to disk) as fast as the messages were
   generated.
 
--messages: The number of messages to send each time.
+- messages: The number of messages to send each time.
 
--own: Fixed string that selects the "own" benchmark subcommand.
+- own: Fixed string that selects the "own" benchmark subcommand.
 
--iterations: The number of times to repeat the tests.
+- iterations: The number of times to repeat the tests.
 
--loggers: A space separated list of loggers to run. The possible values depend
-   on how the library was compiled. run "logger-bench" 8MB 100000 own --help" to
-   see a list of which loggers are available.
+- loggers: A space separated list of loggers to run. The possible values depend
+  on how the library was compiled. run "logger-bench" 8MB 100000 own --help" to
+  see a list of which loggers are available.
 
 Notice that on Linux is beneficial to set the performance governor before
 running:
@@ -204,15 +204,13 @@ CMake is used only because of the convenience of "ExternalProject_Add" for this
 use case. Unfortunately CMake is much more practical than meson for this as of
 today.
 
-This is the project I use when measuring my own logger. Note that enablement of
-some loggers requires to turn on CMake options (see CMakeLists.txt), e.g.:
+Enablement of loggers requires to turn on CMake options (see CMakeLists.txt), e.g.:
 
-> cmake .. -DNANOLOG=on -DSPDLOG=on -GLOG=on -DG3LOG=on
+> cmake .. -DMALC=on -DMAL=on -DNANOLOG=on -DSPDLOG=on -GLOG=on -DG3LOG=on
 
-mini-async-log* loggers can be turned off too:
-
-> cmake .. -DMALC=off -DMAL=off
-
+Notice that some singleton loggers may add hidden resources like e.g. running
+threads that do a busy-loop, so for ultimately fair testing it is recommended to
+only add one logger for each generated executable.
 
 Notes
 =====
