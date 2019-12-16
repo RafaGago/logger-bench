@@ -18,8 +18,6 @@
 #include <throughput_measurements.hpp>
 #include <cpuclock.hpp>
 
-static int max_threads = 16;
-
 /*----------------------------------------------------------------------------*/
 #if __linux__
 #define GNU_SOURCE
@@ -39,10 +37,6 @@ static void set_thread_cpu (unsigned i)
 "set_thread_cpu" implementation will do.*/
 #error "Implement setting a thread to a CPU for this platform"
 #endif
-/*----------------------------------------------------------------------------*/
-static const int thread_count[] = { 1, 2, 4, 8, max_threads };
-static const int thread_count_idxs =
-    sizeof thread_count / sizeof thread_count[0];
 /*----------------------------------------------------------------------------*/
 typedef std::vector<std::unique_ptr<logger>> logvector;
 /*----------------------------------------------------------------------------*/
@@ -199,23 +193,24 @@ static bool run_latency(
 }
 /*----------------------------------------------------------------------------*/
 static int run_tests(
-  test_results& results,
-  std::size_t   msgs,
-  int           iterations,
-  std::size_t   mem_bytes,
-  logvector&    loggers
+  test_results&    results,
+  std::size_t      msgs,
+  int              iterations,
+  std::size_t      mem_bytes,
+  logvector&       loggers,
+  std::vector<int> threadcounts
   )
 {
     using namespace std;
     test_results res;
-    res.init (loggers.size(), thread_count_idxs, iterations);
+    res.init (loggers.size(), threadcounts.size(), iterations);
 
     for (int it = 0; it < iterations; ++it) {
       cout << "iteration: " << it << "\n";
       for (int l = 0; l < loggers.size(); ++l) {
           cout << "--" << loggers[l]->get_name() << "--\n";
-          for (int t = 0; t < thread_count_idxs; ++t) {
-              int threads = thread_count[t];
+          for (int t = 0; t < threadcounts.size(); ++t) {
+              int threads = threadcounts[t];
               test_result* tr = res.at (l, t, it);
               assert (tr);
               memset (tr, 0, sizeof *tr);

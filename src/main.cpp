@@ -37,6 +37,8 @@
 #include <nanolog.hpp>
 #endif
 
+static constexpr int max_threads = 16;
+
 typedef std::vector<std::unique_ptr<logger>> logvector;
 /*----------------------------------------------------------------------------*/
 static logvector init_logvector()
@@ -226,7 +228,14 @@ static int parse_args(
     return 0;
 }
 /*----------------------------------------------------------------------------*/
-int own_subcommand (int argc, char** argv, int qsize, std::size_t messages)
+static std::vector<int> get_thread_counts_vector()
+{
+    return std::vector<int>{1, 2, 4, 8, max_threads};
+}
+/*----------------------------------------------------------------------------*/
+int own_subcommand(
+    int argc, char** argv, int qsize, std::size_t messages, bool only_max_thrds
+    )
 {
     std::size_t iterations = 0;
     logvector loggers = init_logvector();
@@ -246,10 +255,24 @@ int own_subcommand (int argc, char** argv, int qsize, std::size_t messages)
     std::cout << "\n";
 
     test_results results;
-    return run_tests (results, messages, iterations, qsize, loggers);
+    return run_tests(
+        results,
+        messages,
+        iterations,
+        qsize,
+        loggers,
+        only_max_thrds ?
+            std::vector<int>{max_threads} : get_thread_counts_vector()
+        );
 }
 /*----------------------------------------------------------------------------*/
-int gbench_subcommand (int argc, char** argv, int qsize, std::size_t messages)
+int gbench_subcommand(
+    int              argc,
+    char**           argv,
+    int              qsize,
+    std::size_t      messages,
+    std::vector<int> threadcounts
+    )
 {
     if (messages != 0 && messages < max_threads) {
         std::cerr
@@ -263,16 +286,16 @@ int gbench_subcommand (int argc, char** argv, int qsize, std::size_t messages)
     }
     logvector loggers = init_logvector();
     for (std::unique_ptr<logger>& log: loggers) {
-        for (int i = 0; i < thread_count_idxs; ++i) {
+        for (int i = 0; i < threadcounts.size(); ++i) {
             auto b = ::benchmark::RegisterBenchmark(
                 log->get_name(),
                 run_google_benchmark,
                 &(*log),
                 qsize
                 );
-            b->Threads (thread_count[i]);
+            b->Threads (threadcounts[i]);
             if (messages) {
-                b->Iterations (messages / thread_count[i]);
+                b->Iterations (messages / threadcounts[i]);
             }
             b->ComputeStatistics(
                 "max", [](const std::vector<double>& v) -> double
@@ -348,10 +371,15 @@ int main (int argc, char* argv[])
     }
     std::string ltype (argv[3]);
     if (ltype.compare("own") == 0) {
-        return own_subcommand (argc - args, argv + args, qbytes, msgs);
+        return own_subcommand (argc - args, argv + args, qbytes, msgs, false);
+    }
+    else if (ltype.compare("own-max-threads-only") == 0) {
+        return own_subcommand (argc - args, argv + args, qbytes, msgs, true);
     }
     else if (ltype.compare("google") == 0) {
-        return gbench_subcommand (argc - args, argv + args, qbytes, msgs);
+        return gbench_subcommand(
+            argc - args, argv + args, qbytes, msgs, get_thread_counts_vector()
+            );
     }
     else {
         std::cerr

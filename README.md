@@ -78,6 +78,42 @@ Benchmark tries to adjust the number of measurements dynamically.
 
 https://github.com/google/benchmark
 
+Memory usage benchmark. Metodology
+====================================
+
+- Uses the own implementation on this thread.
+
+- Creates as many benchmark executables as loggers are by using the script
+  "build-each-in-onw-executables.sh" on the root of this project. So singleton
+  instances don't interfere with other loggers.
+
+- Runs a single pass of 16 threads enqueueing 100000 messages in total (Using
+  the script "measure-mem.sh" on the root of this project). The bounded loggers
+  are given 8MB to configure its queues, so this peak load doesn't overflow the
+  queues on a slow (by today's standards) machine. AFAIK the only ones
+  supporting bounded queues are "mal" and "malc".
+
+- Measures by using `/usr/bin/time -f "%M" `
+
+Notice that what is expected is:
+
+- Loggers with bounded queues to take a fixed amount of memory.
+
+- Loggers using the heap taking more memory the faster they are.
+
+Memory usage benchmark. Execution
+====================================
+
+To execute, assuming that "BENCHMARK_PROJECT_DIR" points to the root of this
+project:
+
+```sh
+mkdir my-test-tmp-dir && cd my-test-tmp-dir
+$BENCHMARK_PROJECT_DIR/build-each-logger-in-own-executable.sh
+$BENCHMARK_PROJECT_DIR/measure-peak-mem.sh
+
+```
+
 Tested libraries
 ================
 
@@ -172,6 +208,11 @@ https://github.com/PlatformLab/NanoLog
 
 Requires: C++17, make
 
+Adds two variants to the tests:
+
+* nanolog: Vanilla threads.
+* nanalog-tls: Calls "NanoLog::preallocate()" on each thread.
+
 g3log
 -----
 
@@ -196,6 +237,7 @@ https://github.com/Iyengar111/NanoLog
 > cmake .. -DNANOLOG_IYENGAR=on
 
 Requires: C++11, header only.
+
 
 Compilation
 ===========
