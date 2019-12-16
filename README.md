@@ -30,7 +30,7 @@ Own implementation. Metodology
 Own implementation. Execution.
 ==============================
 
-> logger-bench <memory-bytes> <messages> own <iterations> <loggers>...
+`logger-bench <memory-bytes> <messages> own <iterations> <loggers>...`
 
 Where:
 
@@ -53,7 +53,7 @@ Where:
 Notice that on Linux is beneficial to set the performance governor before
 running:
 
-> sudo cpupower frequency-set --governor performance
+`sudo cpupower frequency-set --governor performance`
 
 Restore the governor after testing.
 
@@ -68,7 +68,7 @@ https://github.com/google/benchmark
 Google benchmark. Execution
 ============================
 
-> logger-bench <memory-bytes> <messages> google [google benchmark args]
+`logger-bench <memory-bytes> <messages> google [google benchmark args]`
 
 "memory-bytes" and "messages" are the same as in the own implementation, the
 only difference is that messages accepts zero values, when messages is 0 Google
@@ -119,7 +119,7 @@ Tested libraries
 
 Here is a listing of the tested libraries. If you want to enable all use:
 
-> cmake .. -DENABLE_ALL=on
+`cmake .. -DENABLE_ALL=on`
 
 Enabling them all can cause different results than just having a logger for each
 executable, as some singleton loggers consume resources from the start.
@@ -132,7 +132,7 @@ asynchronous data logger with type-safe strings.
 
 https://github.com/RafaGago/mini-async-log-c
 
-> cmake .. -DMALC=on
+`cmake .. -DMALC=on`
 
 Requires: C11/C++, meson + ninja
 
@@ -158,7 +158,7 @@ A performant asynchronous data logger with acceptable feature-bloat (C++).
 
 https://github.com/RafaGago/mini-async-log-c
 
-> cmake .. -DMAL=on
+`cmake .. -DMAL=on`
 
 Requires: partial C++11, cmake
 
@@ -176,7 +176,7 @@ Very fast, header-only/compiled, C++ logging library.
 
 https://github.com/gabime/spdlog
 
-> cmake .. -DSPDLOG=on
+`cmake .. -DSPDLOG=on`
 
 Requires: C++11, header only.
 
@@ -192,7 +192,7 @@ C++ implementation of the Google logging module.
 
 https://github.com/google/glog.git
 
-> cmake .. -DGLOG=on
+`cmake .. -DGLOG=on`
 
 Requires: C++, make
 
@@ -204,7 +204,7 @@ exposes a simple printf-like API.
 
 https://github.com/PlatformLab/NanoLog
 
-> cmake .. -DNANOLOG=on
+`cmake .. -DNANOLOG=on`
 
 Requires: C++17, make
 
@@ -220,7 +220,7 @@ Asynchronous logger with Dynamic Sinks
 
 https://github.com/KjellKod/g3log
 
-> cmake .. -DG3LOG=on
+`cmake .. -DG3LOG=on`
 
 Requires: C++14, cmake
 
@@ -234,7 +234,7 @@ name that already existed.
 
 https://github.com/Iyengar111/NanoLog
 
-> cmake .. -DNANOLOG_IYENGAR=on
+`cmake .. -DNANOLOG_IYENGAR=on`
 
 Requires: C++11, header only.
 
@@ -248,7 +248,7 @@ today.
 
 Enablement of loggers requires to turn on CMake options (see CMakeLists.txt), e.g.:
 
-> cmake .. -DMALC=on -DMAL=on -DNANOLOG=on -DSPDLOG=on -GLOG=on -DG3LOG=on
+`cmake .. -DMALC=on -DMAL=on -DNANOLOG=on -DSPDLOG=on -GLOG=on -DG3LOG=on`
 
 Notice that some singleton loggers may add hidden resources like e.g. running
 threads that do a busy-loop, so for ultimately fair testing it is recommended to

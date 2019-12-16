@@ -10,6 +10,8 @@
 bool malc_base::create (std::size_t fixed_queues_bytes)
 {
     try {
+        m_log.construct();
+
         m_log.add_destination<malcpp::file_dst>();
         auto cfg = m_log.get_cfg();
 
@@ -29,6 +31,11 @@ bool malc_base::create (std::size_t fixed_queues_bytes)
     catch (...) {
         return false;
     }
+}
+/*----------------------------------------------------------------------------*/
+void malc_base::destroy()
+{
+    m_log.destroy();
 }
 /*----------------------------------------------------------------------------*/
 bool malc_base::terminate()

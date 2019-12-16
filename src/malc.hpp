@@ -10,7 +10,7 @@ public:
     malc_base() : m_log() {};
     virtual ~malc_base() {};
     virtual bool create (std::size_t fixed_queues_bytes);
-    virtual void destroy() {}
+    virtual void destroy();
     virtual bool terminate();
     virtual bool prepare_thread (std::size_t fixed_queues_bytes)
     {
@@ -20,7 +20,7 @@ public:
     std::size_t run_logging (T& iterable);
 
 protected:
-    malcpp::malcpp<> m_log;
+    malcpp::malcpp<true, false, false> m_log;
 
     virtual void set_cfg(
         malcpp::cfg& cfg, std::size_t fixed_queues_bytes
