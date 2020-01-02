@@ -26,7 +26,7 @@ void cpuclock_init (double freq)
         cpuclock_t overhead;
         auto cstart = steady_clock::now();
         auto start = cpuclock_get();
-        std::this_thread::sleep_for (seconds (2));
+        std::this_thread::sleep_for (milliseconds (500));
         overhead = get_overhead();
         auto cend = steady_clock::now();
         auto end = cpuclock_get();
