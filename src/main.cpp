@@ -321,6 +321,7 @@ int gbench_subcommand(
         }
     }
     ::benchmark::RunSpecifiedBenchmarks();
+    return 0;
 }
 /*----------------------------------------------------------------------------*/
 void print_main_help (void)
