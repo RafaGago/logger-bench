@@ -41,6 +41,7 @@ void malc_base::destroy()
 bool malc_base::terminate()
 {
     m_log.terminate (false);
+    return true;
 }
 /*----------------------------------------------------------------------------*/
 template <class T>
